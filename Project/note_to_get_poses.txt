@@ -1,0 +1,7 @@
+X1 = R1*X0 + t1
+
+X2 = R2*X1 + t2 = R2*(R1*X0 + t1) + t2 = R2*R1*X0 + R2*t1 + t2
+X3 = R3*X2 + t3 = R3*(R2*X1 + t2) + t2 = R3*(R2*R1*X0 + R2*t1 + t2) + t3 = R3*R2*R1*X0 + R3*R2*t1 + R*t2 + t3
+
+
+std::Map <timeStamp, pointer> = node_list;

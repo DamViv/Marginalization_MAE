@@ -1,0 +1,32 @@
+graph {
+  size="5,5";
+
+  var1[label="1", pos="0.05142,0.951409!"];
+  var2[label="2", pos="0,0.798279!"];
+  var3[label="3", pos="0.133457,0.754333!"];
+  var4[label="4", pos="0.406921,0.564609!"];
+  var5[label="5", pos="0.697998,0.369027!"];
+  var6[label="6", pos="0.984717,0.188385!"];
+  var7[label="7", pos="1.2997,0!"];
+
+  factor0[label="", shape=point];
+  var1--factor0;
+  factor1[label="", shape=point];
+  var1--factor1;
+  var2--factor1;
+  factor2[label="", shape=point];
+  var2--factor2;
+  var3--factor2;
+  factor3[label="", shape=point];
+  var3--factor3;
+  var4--factor3;
+  factor4[label="", shape=point];
+  var4--factor4;
+  var5--factor4;
+  factor5[label="", shape=point];
+  var5--factor5;
+  var6--factor5;
+  factor6[label="", shape=point];
+  var6--factor6;
+  var7--factor6;
+}
