@@ -1,6 +1,5 @@
-#include <assert.h>
-
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -102,25 +101,62 @@ int main(int argc, char** argv) {
 
     Values result = LevenbergMarquardtOptimizer(graph, initial).optimize();
 
-    vector<double> first_odometry = odometries[0];
-    string start = to_string(first_odometry[0]);
+    size_t i = 0;
+    string start = to_string(odometries[i][0]);
     string end = "";
 
     {
         map<string, vector<double>>::iterator iter = pose_info.find(start);
-        if (iter != pose_info.end()) {
-            (iter->second)[0] += 1;
+
+        assert(iter != pose_info.end() && "Couldn't find the first time stamp!");
+
+        (iter->second)[0] += 1;
+    }
+
+    // Add graph and perform initial estimations
+    while (odometries.size() != 0) {
+        start = to_string(odometries[i][0]);
+        end = to_string(odometries[i][1]);
+
+        map<string, vector<double>>::iterator start_info_it = pose_info.find(start);
+        map<string, vector<double>>::iterator end_info_it = pose_info.find(end);
+
+        map<string, int>::iterator start_id_it = pose_id.find(start);
+        map<string, int>::iterator end_id_it = pose_id.find(end);
+
+        assert(start_id_it != pose_id.end() && "start pose doesn't exist in pose_id");
+        assert(end_id_it != pose_id.end() && "end pose doesn't exist in pose_id");
+
+        assert(start_info_it != pose_info.end() && "start pose doesn't exist in pose_info");
+        assert(end_info_it != pose_info.end() && "start pose doesn't exist in pose_info");
+
+        if ((start_info_it->second)[0] >= 1) {
+            vector transition = {odometries[i][2], odometries[i][3], odometries[i][4]};
+            Pose2 odometry(transition[0], transition[1], transition[2]);
+
+            int start_idx = start_id_it->second;
+            int end_idx = end_id_it->second;
+            graph.emplace_shared<BetweenFactor<Pose2>>(start_idx, end_idx, odometry, odometryNoise);
+
+            if ((start_info_it->second)[0] == 1) {  // If this pose is the first visit, run if statment
+                cout << "" << endl;
+            } else {  // If this pose is already visited, run else statement
+                cout << "" << endl;
+            }
+        } else if ((start_info_it->second)[0] == 0) {
         } else {
-            assert(false);
+            continue;
+        }
+
+        ++i;
+
+        if (i == odometries.size()) {
+            i = 0;
         }
     }
 
-    // Run
-    while (odometries.size() != 0) {
-        }
-
     // Check if the odometries are input in graph
-    assert(odometries.size() == 0);
+    assert(odometries.size() == 0 && "The set of odomotries isn't empty! It should be empty.");
 
     // print result
     // result.print("Final Result:\n");
