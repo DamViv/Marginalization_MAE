@@ -102,9 +102,25 @@ int main(int argc, char** argv) {
 
     Values result = LevenbergMarquardtOptimizer(graph, initial).optimize();
 
+    vector<double> first_odometry = odometries[0];
+    string start = to_string(first_odometry[0]);
+    string end = "";
+
+    {
+        map<string, vector<double>>::iterator iter = pose_info.find(start);
+        if (iter != pose_info.end()) {
+            (iter->second)[0] += 1;
+        } else {
+            assert(false);
+        }
+    }
+
     // Run
     while (odometries.size() != 0) {
-    }
+        }
+
+    // Check if the odometries are input in graph
+    assert(odometries.size() == 0);
 
     // print result
     // result.print("Final Result:\n");
