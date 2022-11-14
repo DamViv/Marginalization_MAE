@@ -61,8 +61,24 @@ int main(int argc, char** argv) {
     data_path = basic_path + file_name;
     write_data(data_path, odometries);
 
-    // Generate a graph
+    // time_stamps_index: [time_stamp, pose_index]
+    map<string, int> time_stamps_index;
+
+    // Make a set of time_stamps in a Hash map
+    for (int i = 0; i < odometries.size(); ++i) {
+        time_stamps_index.insert(pair<string, int>(to_string(odometries[i][0]), 0));
+        time_stamps_index.insert(pair<string, int>(to_string(odometries[i][1]), 0));
+    }
+
+    // Initialize time_stamps_index
     size_t pose_index = 1;
+    for (map<string, int>::iterator iter = time_stamps_index.begin(); iter != time_stamps_index.end(); ++iter) {
+        iter->second = pose_index;
+        ++pose_index;
+    }
+
+    // Generate a graph
+    pose_index = 1;
     NonlinearFactorGraph graph;
 
     Pose2 priorMean(0.0, 0.0, 0.0);
@@ -80,85 +96,7 @@ int main(int argc, char** argv) {
 
     Values result = LevenbergMarquardtOptimizer(graph, initial).optimize();
 
-    // time_stamps_index: [time_stamp, pose_index]
-    map<string, int> time_stamps_index;
-
-    // travel_info: [time_stamp, [visit_time, x, y, theta]]
-    map<string, vector<double>> travel_info;
-
-    // Initialize time_stamps_index and travel_info
-    for (int i = 0; i < odometries.size(); ++i) {
-        time_stamps_index.insert(pair<string, int>(to_string(odometries[i][0]), pose_index));
-        travel_info.insert(pair<string, vector<double>>(to_string(odometries[i][0]), {0, 0, 0, 0}));
-        ++pose_index;
-    }
-
-    // Run
-    for (int i = 0; i < odometries.size(); ++i) {
-        if (i == 755) {
-            break;
-        }
-
-        string provenance = to_string(odometries[i][0]);
-        string destination = to_string(odometries[i][1]);
-        int provenance_index = 0;
-        int destination_index = 0;
-
-        // Add factor
-        map<string, int>::iterator iter_index = time_stamps_index.find(provenance);
-        if (iter_index != time_stamps_index.end()) {
-            provenance_index = iter_index->second;
-        } else {
-            cout << "The provenance " << provenance << " doesn't exist in map" << endl;
-            break;
-        }
-
-        iter_index = time_stamps_index.find(destination);
-        if (iter_index != time_stamps_index.end()) {
-            destination_index = iter_index->second;
-        } else {
-            int max_index = -1;
-            for (iter_index = time_stamps_index.begin(); iter_index != time_stamps_index.end(); ++iter_index) {
-                max_index = (iter_index->second) > max_index ? (iter_index->second) : max_index;
-            }
-            destination_index = max_index + 1;
-            time_stamps_index[destination] = destination_index;
-            travel_info[destination] = {0, 0, 0, 0};
-        }
-
-        // transition = {x, y, theta}
-        vector transition = {odometries[i][2], odometries[i][3], odometries[i][4]};
-        Pose2 odometry(transition[0], transition[1], transition[2]);
-        graph.emplace_shared<BetweenFactor<Pose2>>(provenance_index, destination_index, odometry, odometryNoise);
-
-        // Estimate initialization
-        // travel_info: [time_stamp, [visit_time, x, y, theta]]
-        map<string, vector<double>>::iterator iter_travel_dst = travel_info.find(destination);
-        if ((iter_travel_dst->second)[0] != 0) {
-            continue;
-        }
-
-        map<string, vector<double>>::iterator iter_travel_pro = travel_info.find(provenance);
-        double theta = (iter_travel_pro->second)[3];
-        double destination_x = cos(theta) * odometries[i][2] - sin(theta) * odometries[i][3] + (iter_travel_pro->second)[1];
-        double destination_y = sin(theta) * odometries[i][2] + cos(theta) * odometries[i][3] + (iter_travel_pro->second)[2];
-        double destination_theta = theta + odometries[i][4];
-
-        destination_theta = destination_theta < -2 * M_PI ? destination_theta + 2 * M_PI : destination_theta;
-        destination_theta = destination_theta > 2 * M_PI ? destination_theta - 2 * M_PI : destination_theta;
-
-        (iter_travel_dst->second)[0] += 1;
-        (iter_travel_dst->second)[1] = destination_x;
-        (iter_travel_dst->second)[2] = destination_y;
-        (iter_travel_dst->second)[3] = destination_theta;
-
-        initial.insert(destination_index, Pose2(destination_x, destination_y, destination_theta));
-
-        // Single Step Optimization using Levenberg-Marquardt
-        result = LevenbergMarquardtOptimizer(graph, initial).optimize();
-    }
-
-    //
+    // print result
     // result.print("Final Result:\n");
 
     // save factor graph as graphviz dot file
