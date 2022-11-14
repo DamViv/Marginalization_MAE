@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include <algorithm>
 #include <cmath>
 #include <fstream>
@@ -44,8 +46,8 @@ int main(int argc, char** argv) {
     vector<vector<double>> odometries;
     odometries.reserve(3000);
 
-    string file_name = "test.txt";
-    // string file_name = "intel.relations.txt";
+    // string file_name = "test.txt";
+    string file_name = "intel.relations.txt";
 
     string basic_path = "./data_set/";
     string data_path = basic_path + file_name;
@@ -61,20 +63,24 @@ int main(int argc, char** argv) {
     data_path = basic_path + file_name;
     write_data(data_path, odometries);
 
-    // time_stamps_index: [time_stamp, pose_index]
-    map<string, int> time_stamps_index;
+    // Make a set of pose_id in a Hash map and the one of pose_info
+    // pose_id: [time_stamp, pose_index]
+    // pose_info: [time_stampe, {visit_time, x, ,y, theta}]
+    map<string, int> pose_id;
+    map<string, vector<double>> pose_info;
 
-    // Make a set of time_stamps in a Hash map
     for (int i = 0; i < odometries.size(); ++i) {
-        time_stamps_index.insert(pair<string, int>(to_string(odometries[i][0]), 0));
-        time_stamps_index.insert(pair<string, int>(to_string(odometries[i][1]), 0));
+        pose_id.insert(pair<string, int>(to_string(odometries[i][0]), 0));
+        pose_id.insert(pair<string, int>(to_string(odometries[i][1]), 0));
     }
 
-    // Initialize time_stamps_index
+    // Initialize pose_id and pose_info
     size_t pose_index = 1;
-    for (map<string, int>::iterator iter = time_stamps_index.begin(); iter != time_stamps_index.end(); ++iter) {
+    for (map<string, int>::iterator iter = pose_id.begin(); iter != pose_id.end(); ++iter) {
         iter->second = pose_index;
         ++pose_index;
+
+        pose_info.insert(pair<string, vector<double>>(iter->first, {0, 0, 0, 0}));
     }
 
     // Generate a graph
@@ -95,6 +101,10 @@ int main(int argc, char** argv) {
     initial.insert(pose_index, Pose2(0, 0, 0));
 
     Values result = LevenbergMarquardtOptimizer(graph, initial).optimize();
+
+    // Run
+    while (odometries.size() != 0) {
+    }
 
     // print result
     // result.print("Final Result:\n");
