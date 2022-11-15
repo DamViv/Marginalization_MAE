@@ -42,7 +42,7 @@ using namespace std;
 using namespace gtsam;
 
 int main(int argc, char** argv) {
-    vector<vector<double>> odometries;
+    vector<vector<double>> odometries;  // odometries: [start_time_stamp, end_time_stamp, x, y, theta]
     odometries.reserve(3000);
 
     // string file_name = "test.txt";
@@ -63,23 +63,19 @@ int main(int argc, char** argv) {
     write_data(data_path, odometries);
 
     // Make a set of pose_id in a Hash map and the one of pose_info
-    // pose_id: [time_stamp, pose_index]
-    // pose_info: [time_stampe, {visit_time, x, ,y, theta}]
-    map<string, int> pose_id;
+    // pose_info: [time_stamp, {index_number, visit_time, x, y, theta}]
     map<string, vector<double>> pose_info;
 
+    // Initialize pose_info
     for (int i = 0; i < odometries.size(); ++i) {
-        pose_id.insert(pair<string, int>(to_string(odometries[i][0]), 0));
-        pose_id.insert(pair<string, int>(to_string(odometries[i][1]), 0));
+        pose_info.insert(pair<string, vector<double>>(to_string(odometries[i][0]), {0, 0, 0, 0}));
+        pose_info.insert(pair<string, vector<double>>(to_string(odometries[i][1]), {0, 0, 0, 0}));
     }
 
-    // Initialize pose_id and pose_info
     size_t pose_index = 1;
-    for (map<string, int>::iterator iter = pose_id.begin(); iter != pose_id.end(); ++iter) {
-        iter->second = pose_index;
+    for (map<string, vector<double>>::iterator iter = pose_info.begin(); iter != pose_info.end(); ++iter) {
+        (iter->second)[0] = pose_index;
         ++pose_index;
-
-        pose_info.insert(pair<string, vector<double>>(iter->first, {0, 0, 0, 0}));
     }
 
     // Generate a graph
@@ -95,7 +91,6 @@ int main(int argc, char** argv) {
 
     // Generate the initial
     Values initial;
-    // vector<double> initial_pose = {0, 0, 0};
 
     initial.insert(pose_index, Pose2(0, 0, 0));
 
@@ -107,13 +102,13 @@ int main(int argc, char** argv) {
 
     {
         map<string, vector<double>>::iterator iter = pose_info.find(start);
-
         assert(iter != pose_info.end() && "Couldn't find the first time stamp!");
-
-        (iter->second)[0] += 1;
+        (iter->second)[1] = 1;
     }
 
     // Add graph and perform initial estimations
+    bool is_circulated = false;
+
     while (odometries.size() != 0) {
         start = to_string(odometries[i][0]);
         end = to_string(odometries[i][1]);
@@ -121,49 +116,128 @@ int main(int argc, char** argv) {
         map<string, vector<double>>::iterator start_info_it = pose_info.find(start);
         map<string, vector<double>>::iterator end_info_it = pose_info.find(end);
 
-        map<string, int>::iterator start_id_it = pose_id.find(start);
-        map<string, int>::iterator end_id_it = pose_id.find(end);
+        assert(start_info_it != pose_info.end() && "the start pose doesn't exist in pose_info.");
+        assert(end_info_it != pose_info.end() && "the end pose doesn't exist in pose_info.");
 
-        assert(start_id_it != pose_id.end() && "start pose doesn't exist in pose_id");
-        assert(end_id_it != pose_id.end() && "end pose doesn't exist in pose_id");
+        int start_idx = (start_info_it->second)[0];
+        int end_idx = (end_info_it->second)[0];
 
-        assert(start_info_it != pose_info.end() && "start pose doesn't exist in pose_info");
-        assert(end_info_it != pose_info.end() && "start pose doesn't exist in pose_info");
+        int num_visits_start = (start_info_it->second)[1];
+        int num_visits_end = (end_info_it->second)[1];
 
-        if ((start_info_it->second)[0] >= 1) {
+        if (num_visits_start >= 1) {  // When the start pose is linked into its previous pose.
+
+            // odometries: [start_time_stamp, end_time_stamp, x, y, theta] in relataive coordinates
+            // transition: [x, y, theta] in relative coordinates
             vector transition = {odometries[i][2], odometries[i][3], odometries[i][4]};
             Pose2 odometry(transition[0], transition[1], transition[2]);
 
-            int start_idx = start_id_it->second;
-            int end_idx = end_id_it->second;
             graph.emplace_shared<BetweenFactor<Pose2>>(start_idx, end_idx, odometry, odometryNoise);
 
-            if ((start_info_it->second)[0] == 1) {  // If this pose is the first visit, run if statment
-                cout << "" << endl;
-            } else {  // If this pose is already visited, run else statement
-                cout << "" << endl;
+            // pose_info: [[time_stamp, {index_number, visit_time, x, y, theta}]]
+            double start_x = (start_info_it->second)[2];
+            double start_y = (start_info_it->second)[3];
+            double start_theta = (start_info_it->second)[4];
+
+            double end_x = cos(start_theta) * transition[0] - sin(start_theta) * transition[1] + start_x;
+            double end_y = sin(start_theta) * transition[0] + cos(start_theta) * transition[1] + start_y;
+            double end_theta = start_theta + transition[2];
+
+            end_theta = end_theta < -2 * M_PI ? end_theta + 2 * M_PI : end_theta;
+            end_theta = end_theta > 2 * M_PI ? end_theta - 2 * M_PI : end_theta;
+
+            (end_info_it->second)[1] += 1;
+            (end_info_it->second)[2] = end_x;
+            (end_info_it->second)[3] = end_y;
+            (end_info_it->second)[4] = end_theta;
+
+            if (num_visits_end == 0) {  // When the end pose is the first visit
+
+                initial.insert(end_idx, Pose2(end_x, end_y, end_theta));
+            } else {  // When the end pose is already visited
+                initial.update(end_idx, Pose2(end_x, end_y, end_theta));
             }
-        } else if ((start_info_it->second)[0] == 0) {
+
+            odometries.erase(odometries.begin() + i);
+        } else if (num_visits_end >= 1) {
+            // When the start pose is not linked into its previous pose but the end pose is already visited.
+
+            // odometries: [start_time_stamp, end_time_stamp, x, y, theta] in relataive coordinates
+            // transition: [x, y, theta] in relative coordinates
+            vector transition = {odometries[i][2], odometries[i][3], odometries[i][4]};
+            Pose2 odometry(transition[0], transition[1], transition[2]);
+
+            graph.emplace_shared<BetweenFactor<Pose2>>(start_idx, end_idx, odometry, odometryNoise);
+
+            // pose_info: [[time_stamp, {index_number, visit_time, x, y, theta}]]
+            // Calculate the start pose in absolute coordinates
+            double end_x = (end_info_it->second)[2];
+            double end_y = (end_info_it->second)[3];
+            double end_theta = (end_info_it->second)[4];
+
+            double start_theta = end_theta - transition[2];
+            start_theta = start_theta < -2 * M_PI ? start_theta + 2 * M_PI : start_theta;
+            start_theta = start_theta > 2 * M_PI ? start_theta - 2 * M_PI : start_theta;
+
+            double start_x = end_x - cos(start_theta) * transition[0] + sin(start_theta) * transition[1];
+            double start_y = end_y - sin(start_theta) * transition[0] - cos(start_theta) * transition[1];
+
+            // Update start pose information
+            (start_info_it->second)[1] += 1;  // Increase the number of visits
+            (start_info_it->second)[2] = start_x;
+            (start_info_it->second)[3] = start_y;
+            (start_info_it->second)[4] = start_theta;
+
+            // Get initial estimation
+            initial.insert(start_idx, Pose2(start_x, start_y, start_theta));
+
+            odometries.erase(odometries.begin() + i);
+        } else if (num_visits_start == 0 && num_visits_end == 0 && is_circulated == true) {
+            // odometries: [start_time_stamp, end_time_stamp, x, y, theta] in relataive coordinates
+            // transition: [x, y, theta] in relative coordinates
+            vector transition = {odometries[i][2], odometries[i][3], odometries[i][4]};
+            Pose2 odometry(transition[0], transition[1], transition[2]);
+
+            graph.emplace_shared<BetweenFactor<Pose2>>(start_idx, end_idx, odometry, odometryNoise);
+
+            (start_info_it->second)[1] += 1;
+            initial.insert(start_idx, Pose2(0, 0, 0));
+
+            (end_info_it->second)[1] += 1;
+            (end_info_it->second)[2] = transition[0];
+            (end_info_it->second)[3] = transition[1];
+            (end_info_it->second)[4] = transition[2];
+            initial.insert(end_idx, Pose2(transition[0], transition[1], transition[2]));
+
         } else {
+            // When both start and end poses aren't linked to anything, skip this process and just go to the next step.
+            // It will be handled afterwards
+
+            ++i;
+            if (i >= odometries.size() - 1) {
+                i = 0;
+            }
             continue;
         }
 
-        ++i;
-
         if (i == odometries.size()) {
+            is_circulated = true;
             i = 0;
         }
+
+        // Perform Optimization at each step using Levenberg-Marquardt
+        result = LevenbergMarquardtOptimizer(graph, initial).optimize();
     }
 
-    // Check if the odometries are input in graph
+    // Check if all odometries are input in graph
     assert(odometries.size() == 0 && "The set of odomotries isn't empty! It should be empty.");
 
     // print result
     // result.print("Final Result:\n");
 
     // save factor graph as graphviz dot file
-    // Render to PDF using "fdp Pose2SLAM_result.dot -Tpdf > graph.pdf"
-    graph.saveGraph("Pose2SLAM_result.dot", result);
+    // Render to PDF using "fdp Pose2_SLAM_result.dot -Tpdf > graph.pdf"
+    graph.saveGraph("Pose2_SLAM_result.dot", result);
 
     //  Also print out to console
     // graph.dot(cout, result);
