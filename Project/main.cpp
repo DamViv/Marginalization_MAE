@@ -236,7 +236,7 @@ int main(int argc, char** argv) {
     // result.print("Final Result:\n");
 
     // save factor graph as graphviz dot file
-    // Render to PDF using "fdp Pose2_SLAM_result.dot -Tpdf > graph.pdf"
+    // Render to PDF using "fdp Pose2_SLAM_result.dot -Tpdf > Pose2_SLAM_result.pdf"
     graph.saveGraph("Pose2_SLAM_result.dot", result);
 
     //  Also print out to console
