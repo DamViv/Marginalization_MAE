@@ -80,6 +80,8 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/usr/share/cmake-3.22/Modules/FindBoost.cmake"
   "/usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake"
   "/usr/share/cmake-3.22/Modules/FindPackageMessage.cmake"
+  "/usr/share/cmake-3.22/Modules/FindPython/Support.cmake"
+  "/usr/share/cmake-3.22/Modules/FindPython3.cmake"
   "/usr/share/cmake-3.22/Modules/FindThreads.cmake"
   "/usr/share/cmake-3.22/Modules/Internal/CheckSourceCompiles.cmake"
   "/usr/share/cmake-3.22/Modules/Platform/Linux-GNU-C.cmake"

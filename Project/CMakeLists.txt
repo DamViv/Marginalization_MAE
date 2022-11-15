@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.22)
 project(main)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -8,7 +8,11 @@ set(CMAKE_BUILD_TYPE Debug)
 find_package(GTSAM REQUIRED)
 set(GTSAM_LIBRARIES gtsam)
 
+find_package(Python3 COMPONENTS Interpreter Development NumPy)
+include_directories(${Python3_INCLUDE_DIRS} include)
 
-add_executable(${PROJECT_NAME} main.cpp string_utils.cpp file_utils.cpp)
+
+add_executable(${PROJECT_NAME} main_test.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${GTSAM_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${Python3_LIBRARIES})
