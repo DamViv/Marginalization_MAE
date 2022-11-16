@@ -12,7 +12,7 @@ find_package(Python3 COMPONENTS Interpreter Development NumPy)
 include_directories(${Python3_INCLUDE_DIRS} include)
 
 
-add_executable(${PROJECT_NAME} main.cpp string_utils.cpp file_utils.cpp)
+add_executable(${PROJECT_NAME} main.cpp string_utils.cpp file_utils.cpp point.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${GTSAM_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${Python3_LIBRARIES})

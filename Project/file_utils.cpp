@@ -1,10 +1,10 @@
 #include "file_utils.h"
 
+#include <cstring>
 #include <fstream>
 #include <iostream>
 
 #include "string_utils.h"
-
 using namespace std;
 
 void extract_data(string& file_path, vector<vector<double>>& odometries) {
@@ -52,4 +52,58 @@ void write_data(std::string& file_path, std::vector<std::vector<double>>& odomet
         }
     }
     fout.close();
+}
+
+void extract_poses(string& file_path, vector<Point>& poses) {
+    // Read text file
+    ifstream fin;
+    fin.open(file_path);
+
+    if (fin.fail()) {
+        cout << "can't open the text file." << endl;
+        return;
+    }
+
+    string line;
+    string trash;
+    const int LENGTH_SIZE = 128;
+    char word[] = "pos=\"";
+    char tmp_line[LENGTH_SIZE];
+    int word_length = get_length(word);
+
+    while (!fin.eof()) {
+        getline(fin, line);
+
+        if (fin.fail() || line == "") {
+            fin.clear();
+            fin >> trash;
+        } else {
+            for (int i = 0; i < LENGTH_SIZE; ++i) {
+                tmp_line[i] = '\0';
+            }
+            for (int i = 0; i < line.size(); ++i) {
+                tmp_line[i] = line[i];
+            }
+            tmp_line[LENGTH_SIZE - 1] = '\0';
+
+            int startIdx = index_of(tmp_line, word);
+            if (startIdx >= 0) {
+                startIdx += word_length;
+                char* partial_line = tmp_line + startIdx;
+                char* token = tokenize(partial_line, ",");
+                float pose_y = stof(token);
+
+                token = tokenize(NULL, "!");
+                float pose_x = stof(token);
+
+                poses.push_back(Point(pose_x, pose_y));
+                cout << line << endl;
+            } else {
+                continue;
+            }
+
+            // cout << "Relative position (x: " << odometry[2] << ", y: " << odometry[3] << ", theta: " << odometry[4] << ")" << endl;
+        }
+    }
+    fin.close();
 }

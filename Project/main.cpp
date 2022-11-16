@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <vector>
 
 // We will use Pose2 variables (x, y, theta) to represent the robot positions
 #include <gtsam/geometry/Pose2.h>
@@ -37,9 +38,12 @@
 #include <gtsam/nonlinear/Values.h>
 
 #include "file_utils.h"
+#include "matplotlibcpp.h"
+#include "point.h"
 
 using namespace std;
 using namespace gtsam;
+namespace plt = matplotlibcpp;
 
 int main(int argc, char** argv) {
     vector<vector<double>> odometries;  // odometries: [start_time_stamp, end_time_stamp, x, y, theta]
@@ -237,7 +241,32 @@ int main(int argc, char** argv) {
 
     // save factor graph as graphviz dot file
     // Render to PDF using "fdp Pose2_SLAM_result.dot -Tpdf > Pose2_SLAM_result.pdf"
-    graph.saveGraph("Pose2_SLAM_result.dot", result);
+    file_name = "Pose2_SLAM_result.dot";
+    data_path = file_name;
+    graph.saveGraph(file_name, result);
+
+    vector<Point> poses;
+    poses.reserve(3000);
+
+    extract_poses(data_path, poses);
+
+    vector<float> pose_x;
+    pose_x.reserve(poses.size());
+
+    vector<float> pose_y;
+    pose_y.reserve(poses.size());
+
+    for (int i = 0; i < poses.size(); ++i) {
+        pose_x.push_back(poses[i].mX);
+        pose_y.push_back(poses[i].mY);
+    }
+
+    plt::figure_size(1200, 780);
+    plt::scatter(pose_x, pose_y);
+    plt::title("Seonghyun's Result");
+    plt::save("./Result.png");
+
+    plt::show();
 
     //  Also print out to console
     // graph.dot(cout, result);

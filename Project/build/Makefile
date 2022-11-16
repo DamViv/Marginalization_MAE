@@ -177,6 +177,30 @@ main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+point.o: point.cpp.o
+.PHONY : point.o
+
+# target to build an object file
+point.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/point.cpp.o
+.PHONY : point.cpp.o
+
+point.i: point.cpp.i
+.PHONY : point.i
+
+# target to preprocess a source file
+point.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/point.cpp.i
+.PHONY : point.cpp.i
+
+point.s: point.cpp.s
+.PHONY : point.s
+
+# target to generate assembly for a file
+point.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/point.cpp.s
+.PHONY : point.cpp.s
+
 string_utils.o: string_utils.cpp.o
 .PHONY : string_utils.o
 
@@ -216,6 +240,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... point.o"
+	@echo "... point.i"
+	@echo "... point.s"
 	@echo "... string_utils.o"
 	@echo "... string_utils.i"
 	@echo "... string_utils.s"
