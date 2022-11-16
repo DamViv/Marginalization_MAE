@@ -88,10 +88,10 @@ int main(int argc, char** argv) {
 
     Pose2 priorMean(0.0, 0.0, 0.0);
 
-    auto priorNoise = noiseModel::Diagonal::Sigmas(Vector3(0, 0, 0));
+    auto priorNoise = noiseModel::Diagonal::Sigmas(Vector3(0.3, 0.3, 0.1));
     graph.addPrior(pose_index, priorMean, priorNoise);
 
-    auto odometryNoise = noiseModel::Diagonal::Sigmas(Vector3(0, 0, 0));
+    auto odometryNoise = noiseModel::Diagonal::Sigmas(Vector3(1, 1, 0.1));
 
     // Generate the initial
     Values initial;

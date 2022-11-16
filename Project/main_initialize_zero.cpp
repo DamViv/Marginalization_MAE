@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <vector>
 
 // We will use Pose2 variables (x, y, theta) to represent the robot positions
 #include <gtsam/geometry/Pose2.h>
@@ -37,9 +38,12 @@
 #include <gtsam/nonlinear/Values.h>
 
 #include "file_utils.h"
+#include "matplotlibcpp.h"
+#include "point.h"
 
 using namespace std;
 using namespace gtsam;
+namespace plt = matplotlibcpp;
 
 int main(int argc, char** argv) {
     vector<vector<double>> odometries;  // odometries: [start_time_stamp, end_time_stamp, x, y, theta]
@@ -66,7 +70,7 @@ int main(int argc, char** argv) {
     // pose_info: [time_stamp, {index_number, visit_time, x, y, theta}]
     map<string, vector<double>> pose_info;
 
-    // Initialize  pose_info
+    // Initialize pose_info
     for (int i = 0; i < odometries.size(); ++i) {
         pose_info.insert(pair<string, vector<double>>(to_string(odometries[i][0]), {0, 0, 0, 0}));
         pose_info.insert(pair<string, vector<double>>(to_string(odometries[i][1]), {0, 0, 0, 0}));
@@ -106,9 +110,9 @@ int main(int argc, char** argv) {
         (iter->second)[1] = 1;
     }
 
-    // size_t count = 0;
-    bool is_circulated = false;
     // Add graph and perform initial estimations
+    bool is_circulated = false;
+
     while (odometries.size() != 0) {
         start = to_string(odometries[i][0]);
         end = to_string(odometries[i][1]);
@@ -134,26 +138,28 @@ int main(int argc, char** argv) {
 
             graph.emplace_shared<BetweenFactor<Pose2>>(start_idx, end_idx, odometry, odometryNoise);
 
+            // pose_info: [[time_stamp, {index_number, visit_time, x, y, theta}]]
+            double start_x = (start_info_it->second)[2];
+            double start_y = (start_info_it->second)[3];
+            double start_theta = (start_info_it->second)[4];
+
+            double end_x = cos(start_theta) * transition[0] - sin(start_theta) * transition[1] + start_x;
+            double end_y = sin(start_theta) * transition[0] + cos(start_theta) * transition[1] + start_y;
+            double end_theta = start_theta + transition[2];
+
+            end_theta = end_theta < -2 * M_PI ? end_theta + 2 * M_PI : end_theta;
+            end_theta = end_theta > 2 * M_PI ? end_theta - 2 * M_PI : end_theta;
+
+            (end_info_it->second)[1] += 1;
+            (end_info_it->second)[2] = end_x;
+            (end_info_it->second)[3] = end_y;
+            (end_info_it->second)[4] = end_theta;
+
             if (num_visits_end == 0) {  // When the end pose is the first visit
 
-                // pose_info: [[time_stamp, {index_number, visit_time, x, y, theta}]]
-                double start_x = (start_info_it->second)[2];
-                double start_y = (start_info_it->second)[3];
-                double start_theta = (start_info_it->second)[4];
-
-                double end_x = cos(start_theta) * transition[0] - sin(start_theta) * transition[1] + start_x;
-                double end_y = sin(start_theta) * transition[0] + cos(start_theta) * transition[1] + start_y;
-                double end_theta = start_theta + transition[2];
-
-                end_theta = end_theta < -2 * M_PI ? end_theta + 2 * M_PI : end_theta;
-                end_theta = end_theta > 2 * M_PI ? end_theta - 2 * M_PI : end_theta;
-
-                (end_info_it->second)[1] += 1;
-                (end_info_it->second)[2] = end_x;
-                (end_info_it->second)[3] = end_y;
-                (end_info_it->second)[4] = end_theta;
-
                 initial.insert(end_idx, Pose2(0, 0, 0));
+            } else {  // When the end pose is already visited
+                initial.update(end_idx, Pose2(0, 0, 0));
             }
 
             odometries.erase(odometries.begin() + i);
@@ -227,15 +233,40 @@ int main(int argc, char** argv) {
         result = LevenbergMarquardtOptimizer(graph, initial).optimize();
     }
 
-    // Check if the odometries are input in graph
+    // Check if all odometries are input in graph
     assert(odometries.size() == 0 && "The set of odomotries isn't empty! It should be empty.");
 
     // print result
     // result.print("Final Result:\n");
 
     // save factor graph as graphviz dot file
-    // Render to PDF using "fdp Pose2_SLAM_result_with_all_zero.dot -Tpdf > Pose2_SLAM_result_with_all_zero.pdf"
-    graph.saveGraph("Pose2_SLAM_result_with_all_zero.dot", result);
+    // Render to PDF using "fdp Pose2_SLAM_result.dot -Tpdf > Pose2_SLAM_result.pdf"
+    file_name = "Pose2_SLAM_result.dot";
+    data_path = file_name;
+    graph.saveGraph(file_name, result);
+
+    vector<Point> poses;
+    poses.reserve(3000);
+
+    extract_poses(data_path, poses);
+
+    vector<float> pose_x;
+    pose_x.reserve(poses.size());
+
+    vector<float> pose_y;
+    pose_y.reserve(poses.size());
+
+    for (int i = 0; i < poses.size(); ++i) {
+        pose_x.push_back(poses[i].mX);
+        pose_y.push_back(poses[i].mY);
+    }
+
+    plt::figure_size(1200, 780);
+    plt::scatter(pose_x, pose_y);
+    plt::title("Seonghyun's Result");
+    plt::save("./Result.png");
+
+    plt::show();
 
     //  Also print out to console
     // graph.dot(cout, result);
