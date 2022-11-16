@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "main"
+			"path" : "marginalization"
 		}
 	],
 	"backtrace" : 1,
@@ -146,11 +146,13 @@
 			},
 			"sourceIndexes" : 
 			[
-				0
+				0,
+				1,
+				2
 			]
 		}
 	],
-	"id" : "main::@6890427a1f51a3e7e1df",
+	"id" : "marginalization::@6890427a1f51a3e7e1df",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -224,8 +226,8 @@
 		],
 		"language" : "CXX"
 	},
-	"name" : "main",
-	"nameOnDisk" : "main",
+	"name" : "marginalization",
+	"nameOnDisk" : "marginalization",
 	"paths" : 
 	{
 		"build" : ".",
@@ -237,7 +239,9 @@
 			"name" : "Source Files",
 			"sourceIndexes" : 
 			[
-				0
+				0,
+				1,
+				2
 			]
 		}
 	],
@@ -246,7 +250,19 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "main_test.cpp",
+			"path" : "main.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "string_utils.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "file_utils.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

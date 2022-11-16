@@ -27,7 +27,7 @@
 					[
 						0
 					],
-					"name" : "main",
+					"name" : "marginalization",
 					"targetIndexes" : 
 					[
 						0
@@ -38,9 +38,9 @@
 			[
 				{
 					"directoryIndex" : 0,
-					"id" : "main::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-main-Debug-7403d4e26e6057581d41.json",
-					"name" : "main",
+					"id" : "marginalization::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-marginalization-Debug-60b28b63ee254117008b.json",
+					"name" : "marginalization",
 					"projectIndex" : 0
 				}
 			]

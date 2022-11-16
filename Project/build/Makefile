@@ -117,41 +117,89 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named main
+# Target rules for targets named marginalization
 
 # Build rule for target.
-main: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 main
-.PHONY : main
+marginalization: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 marginalization
+.PHONY : marginalization
 
 # fast build rule for target.
-main/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
-.PHONY : main/fast
+marginalization/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/build
+.PHONY : marginalization/fast
 
-main_test.o: main_test.cpp.o
-.PHONY : main_test.o
+file_utils.o: file_utils.cpp.o
+.PHONY : file_utils.o
 
 # target to build an object file
-main_test.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main_test.cpp.o
-.PHONY : main_test.cpp.o
+file_utils.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/file_utils.cpp.o
+.PHONY : file_utils.cpp.o
 
-main_test.i: main_test.cpp.i
-.PHONY : main_test.i
+file_utils.i: file_utils.cpp.i
+.PHONY : file_utils.i
 
 # target to preprocess a source file
-main_test.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main_test.cpp.i
-.PHONY : main_test.cpp.i
+file_utils.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/file_utils.cpp.i
+.PHONY : file_utils.cpp.i
 
-main_test.s: main_test.cpp.s
-.PHONY : main_test.s
+file_utils.s: file_utils.cpp.s
+.PHONY : file_utils.s
 
 # target to generate assembly for a file
-main_test.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main_test.cpp.s
-.PHONY : main_test.cpp.s
+file_utils.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/file_utils.cpp.s
+.PHONY : file_utils.cpp.s
+
+main.o: main.cpp.o
+.PHONY : main.o
+
+# target to build an object file
+main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/main.cpp.o
+.PHONY : main.cpp.o
+
+main.i: main.cpp.i
+.PHONY : main.i
+
+# target to preprocess a source file
+main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/main.cpp.i
+.PHONY : main.cpp.i
+
+main.s: main.cpp.s
+.PHONY : main.s
+
+# target to generate assembly for a file
+main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/main.cpp.s
+.PHONY : main.cpp.s
+
+string_utils.o: string_utils.cpp.o
+.PHONY : string_utils.o
+
+# target to build an object file
+string_utils.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/string_utils.cpp.o
+.PHONY : string_utils.cpp.o
+
+string_utils.i: string_utils.cpp.i
+.PHONY : string_utils.i
+
+# target to preprocess a source file
+string_utils.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/string_utils.cpp.i
+.PHONY : string_utils.cpp.i
+
+string_utils.s: string_utils.cpp.s
+.PHONY : string_utils.s
+
+# target to generate assembly for a file
+string_utils.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/string_utils.cpp.s
+.PHONY : string_utils.cpp.s
 
 # Help Target
 help:
@@ -161,10 +209,16 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... main"
-	@echo "... main_test.o"
-	@echo "... main_test.i"
-	@echo "... main_test.s"
+	@echo "... marginalization"
+	@echo "... file_utils.o"
+	@echo "... file_utils.i"
+	@echo "... file_utils.s"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
+	@echo "... string_utils.o"
+	@echo "... string_utils.i"
+	@echo "... string_utils.s"
 .PHONY : help
 
 
