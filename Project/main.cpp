@@ -262,8 +262,8 @@ int main(int argc, char** argv) {
     }
 
     plt::figure_size(1200, 780);
-    plt::scatter(pose_x, pose_y);
-    plt::title("Seonghyun's Result");
+    plt::plot(pose_x, pose_y, "*b");
+    plt::title("Optimazation Result");
     plt::save("./Result.png");
 
     plt::show();
