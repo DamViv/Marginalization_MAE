@@ -177,53 +177,53 @@ main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/main.cpp.s
 .PHONY : main.cpp.s
 
-point.o: point.cpp.o
-.PHONY : point.o
+node.o: node.cpp.o
+.PHONY : node.o
 
 # target to build an object file
-point.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/point.cpp.o
-.PHONY : point.cpp.o
+node.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/node.cpp.o
+.PHONY : node.cpp.o
 
-point.i: point.cpp.i
-.PHONY : point.i
+node.i: node.cpp.i
+.PHONY : node.i
 
 # target to preprocess a source file
-point.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/point.cpp.i
-.PHONY : point.cpp.i
+node.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/node.cpp.i
+.PHONY : node.cpp.i
 
-point.s: point.cpp.s
-.PHONY : point.s
+node.s: node.cpp.s
+.PHONY : node.s
 
 # target to generate assembly for a file
-point.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/point.cpp.s
-.PHONY : point.cpp.s
+node.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/node.cpp.s
+.PHONY : node.cpp.s
 
-string_utils.o: string_utils.cpp.o
-.PHONY : string_utils.o
+relation.o: relation.cpp.o
+.PHONY : relation.o
 
 # target to build an object file
-string_utils.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/string_utils.cpp.o
-.PHONY : string_utils.cpp.o
+relation.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/relation.cpp.o
+.PHONY : relation.cpp.o
 
-string_utils.i: string_utils.cpp.i
-.PHONY : string_utils.i
+relation.i: relation.cpp.i
+.PHONY : relation.i
 
 # target to preprocess a source file
-string_utils.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/string_utils.cpp.i
-.PHONY : string_utils.cpp.i
+relation.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/relation.cpp.i
+.PHONY : relation.cpp.i
 
-string_utils.s: string_utils.cpp.s
-.PHONY : string_utils.s
+relation.s: relation.cpp.s
+.PHONY : relation.s
 
 # target to generate assembly for a file
-string_utils.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/string_utils.cpp.s
-.PHONY : string_utils.cpp.s
+relation.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/relation.cpp.s
+.PHONY : relation.cpp.s
 
 # Help Target
 help:
@@ -240,12 +240,12 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
-	@echo "... point.o"
-	@echo "... point.i"
-	@echo "... point.s"
-	@echo "... string_utils.o"
-	@echo "... string_utils.i"
-	@echo "... string_utils.s"
+	@echo "... node.o"
+	@echo "... node.i"
+	@echo "... node.s"
+	@echo "... relation.o"
+	@echo "... relation.i"
+	@echo "... relation.s"
 .PHONY : help
 
 

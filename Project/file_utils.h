@@ -1,11 +1,11 @@
 #pragma once
 
+#include <fstream>
+#include <iostream>
+#include <list>
 #include <string>
 #include <vector>
 
-#include "point.h"
-void extract_data(std::string& file_path, std::vector<std::vector<double>>& odometries);
+#include "relation.h"
 
-void write_data(std::string& file_path, std::vector<std::vector<double>>& odometries);
-
-void extract_poses(std::string& file_path, std::vector<Point>& poses);
+void loadGraph_from_relations(std::string relation_file, std::vector<relation>& relations);

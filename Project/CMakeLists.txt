@@ -8,11 +8,6 @@ set(CMAKE_BUILD_TYPE Debug)
 find_package(GTSAM REQUIRED)
 set(GTSAM_LIBRARIES gtsam)
 
-find_package(Python3 COMPONENTS Interpreter Development NumPy)
-include_directories(${Python3_INCLUDE_DIRS} include)
-
-
-add_executable(${PROJECT_NAME} main.cpp string_utils.cpp file_utils.cpp point.cpp)
+add_executable(${PROJECT_NAME} main.cpp file_utils.cpp relation.cpp node.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${GTSAM_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${Python3_LIBRARIES})

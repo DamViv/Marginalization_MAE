@@ -1,275 +1,128 @@
+#include <gtsam/geometry/Pose2.h>
+#include <gtsam/nonlinear/GaussNewtonOptimizer.h>
+#include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
+#include <gtsam/nonlinear/NonlinearFactorGraph.h>
+#include <gtsam/slam/PriorFactor.h>
+#include <gtsam/slam/dataset.h>
+
 #include <algorithm>
-#include <cassert>
-#include <cmath>
 #include <fstream>
-#include <iostream>
-#include <map>
 #include <string>
 #include <vector>
 
-// We will use Pose2 variables (x, y, theta) to represent the robot positions
-#include <gtsam/geometry/Pose2.h>
-
-// In GTSAM, measurement functions are represented as 'factors'. Several common factors
-// have been provided with the library for solving robotics/SLAM/Bundle Adjustment problems.
-// Here we will use Between factors for the relative motion described by odometry measurements.
-// Also, we will initialize the robot at the origin using a Prior factor.
-#include <gtsam/slam/BetweenFactor.h>
-
-// When the factors are created, we will add them to a Factor Graph. As the factors we are using
-// are nonlinear factors, we will need a Nonlinear Factor Graph.
-#include <gtsam/nonlinear/NonlinearFactorGraph.h>
-
-// Finally, once all of the factors have been added to our factor graph, we will want to
-// solve/optimize to graph to find the best (Maximum A Posteriori) set of variable values.
-// GTSAM includes several nonlinear optimizers to perform this step. Here we will use the
-// Levenberg-Marquardt solver
-#include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
-
-// Once the optimized values have been calculated, we can also calculate the marginal covariance
-// of desired variables
-#include <gtsam/nonlinear/Marginals.h>
-
-// The nonlinear solvers within GTSAM are iterative solvers, meaning they linearize the
-// nonlinear functions around an initial linearization point, then solve the linear system
-// to update the linearization point. This happens repeatedly until the solver converges
-// to a consistent set of variable values. This requires us to specify an initial guess
-// for each variable, held in a Values container.
-#include <gtsam/nonlinear/Values.h>
-
 #include "file_utils.h"
-#include "matplotlibcpp.h"
-#include "point.h"
+#include "node.h"
+#include "relation.h"
 
 using namespace std;
 using namespace gtsam;
-namespace plt = matplotlibcpp;
 
 int main(int argc, char** argv) {
-    vector<vector<double>> odometries;  // odometries: [start_time_stamp, end_time_stamp, x, y, theta]
-    odometries.reserve(3000);
-
-    // string file_name = "test.txt";
-    string file_name = "intel.relations.txt";
-
+    string relation_file = "intel.relations.txt";
     string basic_path = "./data_set/";
-    string data_path = basic_path + file_name;
 
-    // Read text file
-    extract_data(data_path, odometries);
+    relation_file = basic_path + relation_file;
+    std::vector<relation> relations;
+    relations.reserve(3000);
 
-    // Sort the data in ascending the time stamp
-    sort(odometries.begin(), odometries.end());
+    loadGraph_from_relations(relation_file, relations);
+    sort(relations.begin(), --relations.end(), id_compare);
 
-    // Write the sorted data in text file
-    file_name = "sorted_data.txt";
-    data_path = basic_path + file_name;
-    write_data(data_path, odometries);
-
-    // Make a set of pose_id in a Hash map and the one of pose_info
-    // pose_info: [time_stamp, {index_number, visit_time, x, y, theta}]
-    map<string, vector<double>> pose_info;
-
-    // Initialize pose_info
-    for (int i = 0; i < odometries.size(); ++i) {
-        pose_info.insert(pair<string, vector<double>>(to_string(odometries[i][0]), {0, 0, 0, 0}));
-        pose_info.insert(pair<string, vector<double>>(to_string(odometries[i][1]), {0, 0, 0, 0}));
-    }
-
-    size_t pose_index = 1;
-    for (map<string, vector<double>>::iterator iter = pose_info.begin(); iter != pose_info.end(); ++iter) {
-        (iter->second)[0] = pose_index;
-        ++pose_index;
-    }
-
-    // Generate a graph
-    pose_index = 1;
+    // Initialize graph with prior on first pose
     NonlinearFactorGraph graph;
-
-    Pose2 priorMean(0.0, 0.0, 0.0);
-
-    auto priorNoise = noiseModel::Diagonal::Sigmas(Vector3(0.3, 0.3, 0.1));
-    graph.addPrior(pose_index, priorMean, priorNoise);
-
-    auto odometryNoise = noiseModel::Diagonal::Sigmas(Vector3(1, 1, 0.1));
-
-    // Generate the initial
     Values initial;
 
-    initial.insert(pose_index, Pose2(0, 0, 0));
+    noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas(Vector3(0.3, 0.3, 0.1));
+    noiseModel::Diagonal::shared_ptr odom_noise_model = noiseModel::Diagonal::Sigmas(Vector3(1, 1, 0.1));
 
+    // Create a map to link time and key
+    std::map<string, unsigned int> existing_nodes;
+
+    // Add the first node with key 0 with a Prior factor to fix the traj
+    unsigned int key = 0;
+    graph.add(PriorFactor<Pose2>(key, Pose2(0, 0, 0), priorNoise));
+    initial.insert(key, Pose2(0, 0, 0));
+    existing_nodes.insert(pair<string, unsigned int>(relations.at(0).id1, key));
+
+    // Perform Optimization at each step using Levenberg-Marquardt
     Values result = LevenbergMarquardtOptimizer(graph, initial).optimize();
 
-    size_t i = 0;
-    string start = to_string(odometries[i][0]);
-    string end = "";
+    int count = 0;
+    vector<int> cl_nodes;
+    cl_nodes.reserve(500);
 
-    {
-        map<string, vector<double>>::iterator iter = pose_info.find(start);
-        assert(iter != pose_info.end() && "Couldn't find the first time stamp!");
-        (iter->second)[1] = 1;
-    }
+    for (relation rel : relations) {
+        string src_node = rel.id1;
+        string dest_node = rel.id2;
 
-    // Add graph and perform initial estimations
-    bool is_circulated = false;
+        // check if source node exists in exising_nodes
+        if (existing_nodes.find(src_node) != existing_nodes.end()) {
+            Pose2 src_pose = initial.at<Pose2>(existing_nodes[src_node]);
+            double x = (cos(src_pose.theta()) * rel.T.x() - sin(src_pose.theta()) * rel.T.y()) + src_pose.x();
+            double y = (sin(src_pose.theta()) * rel.T.x() + cos(src_pose.theta()) * rel.T.y()) + src_pose.y();
+            double theta = src_pose.theta() + rel.R.z();
 
-    while (odometries.size() != 0) {
-        start = to_string(odometries[i][0]);
-        end = to_string(odometries[i][1]);
-
-        map<string, vector<double>>::iterator start_info_it = pose_info.find(start);
-        map<string, vector<double>>::iterator end_info_it = pose_info.find(end);
-
-        assert(start_info_it != pose_info.end() && "the start pose doesn't exist in pose_info.");
-        assert(end_info_it != pose_info.end() && "the end pose doesn't exist in pose_info.");
-
-        int start_idx = (start_info_it->second)[0];
-        int end_idx = (end_info_it->second)[0];
-
-        int num_visits_start = (start_info_it->second)[1];
-        int num_visits_end = (end_info_it->second)[1];
-
-        if (num_visits_start >= 1) {  // When the start pose is linked into its previous pose.
-
-            // odometries: [start_time_stamp, end_time_stamp, x, y, theta] in relataive coordinates
-            // transition: [x, y, theta] in relative coordinates
-            vector transition = {odometries[i][2], odometries[i][3], odometries[i][4]};
-            Pose2 odometry(transition[0], transition[1], transition[2]);
-
-            graph.emplace_shared<BetweenFactor<Pose2>>(start_idx, end_idx, odometry, odometryNoise);
-
-            // pose_info: [[time_stamp, {index_number, visit_time, x, y, theta}]]
-            double start_x = (start_info_it->second)[2];
-            double start_y = (start_info_it->second)[3];
-            double start_theta = (start_info_it->second)[4];
-
-            double end_x = cos(start_theta) * transition[0] - sin(start_theta) * transition[1] + start_x;
-            double end_y = sin(start_theta) * transition[0] + cos(start_theta) * transition[1] + start_y;
-            double end_theta = start_theta + transition[2];
-
-            end_theta = end_theta < -2 * M_PI ? end_theta + 2 * M_PI : end_theta;
-            end_theta = end_theta > 2 * M_PI ? end_theta - 2 * M_PI : end_theta;
-
-            (end_info_it->second)[1] += 1;
-            (end_info_it->second)[2] = end_x;
-            (end_info_it->second)[3] = end_y;
-            (end_info_it->second)[4] = end_theta;
-
-            if (num_visits_end == 0) {  // When the end pose is the first visit
-
-                initial.insert(end_idx, Pose2(end_x, end_y, end_theta));
-            } else {  // When the end pose is already visited
-                initial.update(end_idx, Pose2(end_x, end_y, end_theta));
+            // check if destination node exists
+            if (existing_nodes.find(dest_node) != existing_nodes.end()) {
+                graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
+                cl_nodes.push_back(existing_nodes[dest_node]);
+            } else {
+                existing_nodes.insert(pair<string, unsigned int>(dest_node, ++key));
+                graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
+                initial.insert(existing_nodes[dest_node], Pose2(x, y, theta));
             }
+        } else if (existing_nodes.find(dest_node) != existing_nodes.end()) {
+            existing_nodes.insert(pair<string, unsigned int>(src_node, ++key));
+            graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
 
-            odometries.erase(odometries.begin() + i);
-        } else if (num_visits_end >= 1) {
-            // When the start pose is not linked into its previous pose but the end pose is already visited.
+            Pose2 dest_pose = initial.at<Pose2>(existing_nodes[dest_node]);
+            double src_theta = dest_pose.theta() - rel.R.z();
+            double src_x = (-cos(src_theta) * rel.T.x() + sin(src_theta) * rel.T.y()) + dest_pose.x();
+            double src_y = (-sin(src_theta) * rel.T.x() - cos(src_theta) * rel.T.y()) + dest_pose.y();
 
-            // odometries: [start_time_stamp, end_time_stamp, x, y, theta] in relataive coordinates
-            // transition: [x, y, theta] in relative coordinates
-            vector transition = {odometries[i][2], odometries[i][3], odometries[i][4]};
-            Pose2 odometry(transition[0], transition[1], transition[2]);
-
-            graph.emplace_shared<BetweenFactor<Pose2>>(start_idx, end_idx, odometry, odometryNoise);
-
-            // pose_info: [[time_stamp, {index_number, visit_time, x, y, theta}]]
-            // Calculate the start pose in absolute coordinates
-            double end_x = (end_info_it->second)[2];
-            double end_y = (end_info_it->second)[3];
-            double end_theta = (end_info_it->second)[4];
-
-            double start_theta = end_theta - transition[2];
-            start_theta = start_theta < -2 * M_PI ? start_theta + 2 * M_PI : start_theta;
-            start_theta = start_theta > 2 * M_PI ? start_theta - 2 * M_PI : start_theta;
-
-            double start_x = end_x - cos(start_theta) * transition[0] + sin(start_theta) * transition[1];
-            double start_y = end_y - sin(start_theta) * transition[0] - cos(start_theta) * transition[1];
-
-            // Update start pose information
-            (start_info_it->second)[1] += 1;  // Increase the number of visits
-            (start_info_it->second)[2] = start_x;
-            (start_info_it->second)[3] = start_y;
-            (start_info_it->second)[4] = start_theta;
-
-            // Get initial estimation
-            initial.insert(start_idx, Pose2(start_x, start_y, start_theta));
-
-            odometries.erase(odometries.begin() + i);
-        } else if (num_visits_start == 0 && num_visits_end == 0 && is_circulated == true) {
-            // odometries: [start_time_stamp, end_time_stamp, x, y, theta] in relataive coordinates
-            // transition: [x, y, theta] in relative coordinates
-            vector transition = {odometries[i][2], odometries[i][3], odometries[i][4]};
-            Pose2 odometry(transition[0], transition[1], transition[2]);
-
-            graph.emplace_shared<BetweenFactor<Pose2>>(start_idx, end_idx, odometry, odometryNoise);
-
-            (start_info_it->second)[1] += 1;
-            initial.insert(start_idx, Pose2(0, 0, 0));
-
-            (end_info_it->second)[1] += 1;
-            (end_info_it->second)[2] = transition[0];
-            (end_info_it->second)[3] = transition[1];
-            (end_info_it->second)[4] = transition[2];
-            initial.insert(end_idx, Pose2(transition[0], transition[1], transition[2]));
-
+            initial.insert(existing_nodes[src_node], Pose2(src_x, src_y, src_theta));
         } else {
-            // When both start and end poses aren't linked to anything, skip this process and just go to the next step.
-            // It will be handled afterwards
+            existing_nodes.insert(pair<string, unsigned int>(src_node, ++key));
+            existing_nodes.insert(pair<string, unsigned int>(dest_node, ++key));
+            graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
 
-            ++i;
-            if (i >= odometries.size() - 1) {
-                i = 0;
-            }
-            continue;
+            initial.insert(existing_nodes[src_node], Pose2(0, 0, 0));
+            initial.insert(existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()));
         }
 
-        if (i == odometries.size()) {
-            is_circulated = true;
-            i = 0;
-        }
-
-        // Perform Optimization at each step using Levenberg-Marquardt
         result = LevenbergMarquardtOptimizer(graph, initial).optimize();
+
+        cout.precision(9);
+        cout << "Relation: " << src_node << " - " << dest_node << endl;
+        Pose2 src_pose = initial.at<Pose2>(existing_nodes[src_node]);
+        cout << "initial  src_pose: " << src_pose.x() << ", " << src_pose.y() << ", " << src_pose.theta() << endl;
+        Pose2 dest_pose = initial.at<Pose2>(existing_nodes[dest_node]);
+        cout << "initial dest_pose: " << dest_pose.x() << ", " << dest_pose.y() << ", " << dest_pose.theta() << endl;
+        Pose2 result_src_pose = result.at<Pose2>(existing_nodes[src_node]);
+        cout << "result  src_pose: " << result_src_pose.x() << ", " << result_src_pose.y() << ", " << result_src_pose.theta() << endl;
+        Pose2 result_dest_pose = result.at<Pose2>(existing_nodes[dest_node]);
+        cout << "result dest_pose: " << result_dest_pose.x() << ", " << result_dest_pose.y() << ", " << result_dest_pose.theta() << endl;
+        cout << ++count << " iteration is done" << endl
+             << endl;
     }
+    result = LevenbergMarquardtOptimizer(graph, initial).optimize();
 
-    // Check if all odometries are input in graph
-    assert(odometries.size() == 0 && "The set of odomotries isn't empty! It should be empty.");
+    ofstream os2("coords.txt");
+    for (int i = 0; i < graph.size(); ++i) {
+        auto factor = graph.at(i);
+        auto keys = factor->keys();
 
-    // print result
-    // result.print("Final Result:\n");
+        auto src = keys[0];
+        auto dest = keys[1];
 
-    // save factor graph as graphviz dot file
-    // Render to PDF using "fdp Pose2_SLAM_result.dot -Tpdf > Pose2_SLAM_result.pdf"
-    file_name = "Pose2_SLAM_result.dot";
-    data_path = file_name;
-    graph.saveGraph(file_name, result);
+        Pose2 p1 = result.at<Pose2>(src);
+        Pose2 p2 = result.at<Pose2>(dest);
 
-    vector<Point> poses;
-    poses.reserve(3000);
+        Pose2 i1 = initial.at<Pose2>(src);
+        Pose2 i2 = initial.at<Pose2>(dest);
 
-    extract_poses(data_path, poses);
-
-    vector<float> pose_x;
-    pose_x.reserve(poses.size());
-
-    vector<float> pose_y;
-    pose_y.reserve(poses.size());
-
-    for (int i = 0; i < poses.size(); ++i) {
-        pose_x.push_back(poses[i].mX);
-        pose_y.push_back(poses[i].mY);
+        os2 << p1.x() << " " << p1.y() << " " << p2.x() << " " << p2.y() << " " << i1.x() << " " << i1.y() << " " << i2.x() << " " << i2.y() << std::endl;
     }
-
-    plt::figure_size(1200, 780);
-    plt::plot(pose_x, pose_y, "*b");
-    plt::title("Optimazation Result");
-    plt::save("./Result.png");
-
-    plt::show();
-
-    //  Also print out to console
-    // graph.dot(cout, result);
 
     return 0;
 }
