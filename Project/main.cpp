@@ -58,9 +58,6 @@ int main(int argc, char** argv) {
         // check if source node exists in exising_nodes
         if (existing_nodes.find(src_node) != existing_nodes.end()) {
             Pose2 src_pose = initial.at<Pose2>(existing_nodes[src_node]);
-            double x = (cos(src_pose.theta()) * rel.T.x() - sin(src_pose.theta()) * rel.T.y()) + src_pose.x();
-            double y = (sin(src_pose.theta()) * rel.T.x() + cos(src_pose.theta()) * rel.T.y()) + src_pose.y();
-            double theta = src_pose.theta() + rel.R.z();
 
             // check if destination node exists
             if (existing_nodes.find(dest_node) != existing_nodes.end()) {
@@ -69,6 +66,9 @@ int main(int argc, char** argv) {
             } else {
                 existing_nodes.insert(pair<string, unsigned int>(dest_node, ++key));
                 graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
+                double x = (cos(src_pose.theta()) * rel.T.x() - sin(src_pose.theta()) * rel.T.y()) + src_pose.x();
+                double y = (sin(src_pose.theta()) * rel.T.x() + cos(src_pose.theta()) * rel.T.y()) + src_pose.y();
+                double theta = src_pose.theta() + rel.R.z();
                 initial.insert(existing_nodes[dest_node], Pose2(x, y, theta));
             }
         } else if (existing_nodes.find(dest_node) != existing_nodes.end()) {
