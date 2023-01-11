@@ -129,6 +129,30 @@ marginalization/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/build
 .PHONY : marginalization/fast
 
+algorithm_utils.o: algorithm_utils.cpp.o
+.PHONY : algorithm_utils.o
+
+# target to build an object file
+algorithm_utils.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/algorithm_utils.cpp.o
+.PHONY : algorithm_utils.cpp.o
+
+algorithm_utils.i: algorithm_utils.cpp.i
+.PHONY : algorithm_utils.i
+
+# target to preprocess a source file
+algorithm_utils.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/algorithm_utils.cpp.i
+.PHONY : algorithm_utils.cpp.i
+
+algorithm_utils.s: algorithm_utils.cpp.s
+.PHONY : algorithm_utils.s
+
+# target to generate assembly for a file
+algorithm_utils.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/algorithm_utils.cpp.s
+.PHONY : algorithm_utils.cpp.s
+
 file_utils.o: file_utils.cpp.o
 .PHONY : file_utils.o
 
@@ -153,6 +177,30 @@ file_utils.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/file_utils.cpp.s
 .PHONY : file_utils.cpp.s
 
+graph_utils.o: graph_utils.cpp.o
+.PHONY : graph_utils.o
+
+# target to build an object file
+graph_utils.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/graph_utils.cpp.o
+.PHONY : graph_utils.cpp.o
+
+graph_utils.i: graph_utils.cpp.i
+.PHONY : graph_utils.i
+
+# target to preprocess a source file
+graph_utils.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/graph_utils.cpp.i
+.PHONY : graph_utils.cpp.i
+
+graph_utils.s: graph_utils.cpp.s
+.PHONY : graph_utils.s
+
+# target to generate assembly for a file
+graph_utils.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/graph_utils.cpp.s
+.PHONY : graph_utils.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -176,6 +224,30 @@ main.s: main.cpp.s
 main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/main.cpp.s
 .PHONY : main.cpp.s
+
+matrix_utils.o: matrix_utils.cpp.o
+.PHONY : matrix_utils.o
+
+# target to build an object file
+matrix_utils.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/matrix_utils.cpp.o
+.PHONY : matrix_utils.cpp.o
+
+matrix_utils.i: matrix_utils.cpp.i
+.PHONY : matrix_utils.i
+
+# target to preprocess a source file
+matrix_utils.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/matrix_utils.cpp.i
+.PHONY : matrix_utils.cpp.i
+
+matrix_utils.s: matrix_utils.cpp.s
+.PHONY : matrix_utils.s
+
+# target to generate assembly for a file
+matrix_utils.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/marginalization.dir/build.make CMakeFiles/marginalization.dir/matrix_utils.cpp.s
+.PHONY : matrix_utils.cpp.s
 
 node.o: node.cpp.o
 .PHONY : node.o
@@ -234,12 +306,21 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... marginalization"
+	@echo "... algorithm_utils.o"
+	@echo "... algorithm_utils.i"
+	@echo "... algorithm_utils.s"
 	@echo "... file_utils.o"
 	@echo "... file_utils.i"
 	@echo "... file_utils.s"
+	@echo "... graph_utils.o"
+	@echo "... graph_utils.i"
+	@echo "... graph_utils.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... matrix_utils.o"
+	@echo "... matrix_utils.i"
+	@echo "... matrix_utils.s"
 	@echo "... node.o"
 	@echo "... node.i"
 	@echo "... node.s"

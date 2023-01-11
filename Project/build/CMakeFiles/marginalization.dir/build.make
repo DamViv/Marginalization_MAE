@@ -125,12 +125,57 @@ CMakeFiles/marginalization.dir/node.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/marginalization.dir/node.cpp.s"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/node.cpp -o CMakeFiles/marginalization.dir/node.cpp.s
 
+CMakeFiles/marginalization.dir/matrix_utils.cpp.o: CMakeFiles/marginalization.dir/flags.make
+CMakeFiles/marginalization.dir/matrix_utils.cpp.o: ../matrix_utils.cpp
+CMakeFiles/marginalization.dir/matrix_utils.cpp.o: CMakeFiles/marginalization.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/marginalization.dir/matrix_utils.cpp.o"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/marginalization.dir/matrix_utils.cpp.o -MF CMakeFiles/marginalization.dir/matrix_utils.cpp.o.d -o CMakeFiles/marginalization.dir/matrix_utils.cpp.o -c /home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/matrix_utils.cpp
+
+CMakeFiles/marginalization.dir/matrix_utils.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/marginalization.dir/matrix_utils.cpp.i"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/matrix_utils.cpp > CMakeFiles/marginalization.dir/matrix_utils.cpp.i
+
+CMakeFiles/marginalization.dir/matrix_utils.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/marginalization.dir/matrix_utils.cpp.s"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/matrix_utils.cpp -o CMakeFiles/marginalization.dir/matrix_utils.cpp.s
+
+CMakeFiles/marginalization.dir/graph_utils.cpp.o: CMakeFiles/marginalization.dir/flags.make
+CMakeFiles/marginalization.dir/graph_utils.cpp.o: ../graph_utils.cpp
+CMakeFiles/marginalization.dir/graph_utils.cpp.o: CMakeFiles/marginalization.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/marginalization.dir/graph_utils.cpp.o"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/marginalization.dir/graph_utils.cpp.o -MF CMakeFiles/marginalization.dir/graph_utils.cpp.o.d -o CMakeFiles/marginalization.dir/graph_utils.cpp.o -c /home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/graph_utils.cpp
+
+CMakeFiles/marginalization.dir/graph_utils.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/marginalization.dir/graph_utils.cpp.i"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/graph_utils.cpp > CMakeFiles/marginalization.dir/graph_utils.cpp.i
+
+CMakeFiles/marginalization.dir/graph_utils.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/marginalization.dir/graph_utils.cpp.s"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/graph_utils.cpp -o CMakeFiles/marginalization.dir/graph_utils.cpp.s
+
+CMakeFiles/marginalization.dir/algorithm_utils.cpp.o: CMakeFiles/marginalization.dir/flags.make
+CMakeFiles/marginalization.dir/algorithm_utils.cpp.o: ../algorithm_utils.cpp
+CMakeFiles/marginalization.dir/algorithm_utils.cpp.o: CMakeFiles/marginalization.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/marginalization.dir/algorithm_utils.cpp.o"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/marginalization.dir/algorithm_utils.cpp.o -MF CMakeFiles/marginalization.dir/algorithm_utils.cpp.o.d -o CMakeFiles/marginalization.dir/algorithm_utils.cpp.o -c /home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/algorithm_utils.cpp
+
+CMakeFiles/marginalization.dir/algorithm_utils.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/marginalization.dir/algorithm_utils.cpp.i"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/algorithm_utils.cpp > CMakeFiles/marginalization.dir/algorithm_utils.cpp.i
+
+CMakeFiles/marginalization.dir/algorithm_utils.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/marginalization.dir/algorithm_utils.cpp.s"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/algorithm_utils.cpp -o CMakeFiles/marginalization.dir/algorithm_utils.cpp.s
+
 # Object files for target marginalization
 marginalization_OBJECTS = \
 "CMakeFiles/marginalization.dir/main.cpp.o" \
 "CMakeFiles/marginalization.dir/file_utils.cpp.o" \
 "CMakeFiles/marginalization.dir/relation.cpp.o" \
-"CMakeFiles/marginalization.dir/node.cpp.o"
+"CMakeFiles/marginalization.dir/node.cpp.o" \
+"CMakeFiles/marginalization.dir/matrix_utils.cpp.o" \
+"CMakeFiles/marginalization.dir/graph_utils.cpp.o" \
+"CMakeFiles/marginalization.dir/algorithm_utils.cpp.o"
 
 # External object files for target marginalization
 marginalization_EXTERNAL_OBJECTS =
@@ -139,6 +184,9 @@ marginalization: CMakeFiles/marginalization.dir/main.cpp.o
 marginalization: CMakeFiles/marginalization.dir/file_utils.cpp.o
 marginalization: CMakeFiles/marginalization.dir/relation.cpp.o
 marginalization: CMakeFiles/marginalization.dir/node.cpp.o
+marginalization: CMakeFiles/marginalization.dir/matrix_utils.cpp.o
+marginalization: CMakeFiles/marginalization.dir/graph_utils.cpp.o
+marginalization: CMakeFiles/marginalization.dir/algorithm_utils.cpp.o
 marginalization: CMakeFiles/marginalization.dir/build.make
 marginalization: /usr/local/lib/libgtsam.so.4.2.0
 marginalization: /usr/lib/x86_64-linux-gnu/libboost_serialization.so.1.74.0
@@ -152,7 +200,7 @@ marginalization: /usr/lib/x86_64-linux-gnu/libboost_timer.so.1.74.0
 marginalization: /usr/lib/x86_64-linux-gnu/libboost_chrono.so.1.74.0
 marginalization: /usr/local/lib/libmetis-gtsam.so
 marginalization: CMakeFiles/marginalization.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable marginalization"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/seonghyun/Desktop/SUPAERO/Research_project/Marginalization/Marginalization_MAE/Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable marginalization"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/marginalization.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

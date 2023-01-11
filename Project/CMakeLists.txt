@@ -8,6 +8,6 @@ set(CMAKE_BUILD_TYPE Debug)
 find_package(GTSAM REQUIRED)
 set(GTSAM_LIBRARIES gtsam)
 
-add_executable(${PROJECT_NAME} main.cpp file_utils.cpp relation.cpp node.cpp)
+add_executable(${PROJECT_NAME} main.cpp file_utils.cpp relation.cpp node.cpp matrix_utils.cpp graph_utils.cpp algorithm_utils.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${GTSAM_LIBRARIES})

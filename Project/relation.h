@@ -14,5 +14,3 @@ class relation {
     Eigen::Vector3d R;
     Eigen::Vector3d T;
 };
-
-bool id_compare(relation& a, relation& b);
