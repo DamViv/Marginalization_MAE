@@ -2002,7 +2002,17 @@ CMakeFiles/marginalization.dir/graph_utils.cpp.o: ../graph_utils.cpp \
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
   /usr/include/c++/11/bits/fstream.tcc \
-  /usr/local/include/gtsam/nonlinear/PriorFactor.h
+  /usr/local/include/gtsam/nonlinear/PriorFactor.h \
+  ../algorithm_utils.h \
+  ../relation.h \
+  /usr/include/eigen3/Eigen/Dense \
+  /usr/include/eigen3/Eigen/Core \
+  /usr/include/eigen3/Eigen/LU \
+  /usr/include/eigen3/Eigen/Cholesky \
+  /usr/include/eigen3/Eigen/QR \
+  /usr/include/eigen3/Eigen/SVD \
+  /usr/include/eigen3/Eigen/Geometry \
+  /usr/include/eigen3/Eigen/Eigenvalues
 
 CMakeFiles/marginalization.dir/main.cpp.o: ../main.cpp \
   /usr/include/stdc-predef.h \

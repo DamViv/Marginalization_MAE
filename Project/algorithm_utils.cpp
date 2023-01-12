@@ -1,6 +1,6 @@
 #include "algorithm_utils.h"
-bool MI_descend(std::vector<double> a, std::vector<double> b) {
-    return a[2] > b[2];
+bool MI_descend(std::pair<float, std::pair<int, int>> a, std::pair<float, std::pair<int, int>> b) {
+    return a.first > b.first;
 }
 
 bool id_ascend(relation& a, relation& b) {

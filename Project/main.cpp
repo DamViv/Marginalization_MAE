@@ -211,50 +211,58 @@ int main(int argc, char** argv) {
     os2.close();
 
     // Compute CLT tree
-    vector<vector<double>> pair_MIs;
+    Graph g(nodes_to_keep_mb.size());
+    // vector<vector<double>> pair_MIs;
     for (int k = nodes_to_keep_mb.size(); k >= 1; --k) {
         for (int j = 1; j <= k - 1; ++j) {
-            vector<double> pair_MI;
+            // vector<double> pair_MI;
             double MI = compute_mutual_information(I_marg, j, k);
-            pair_MI.push_back(j);
-            pair_MI.push_back(k);
-            pair_MI.push_back(MI);
-            pair_MIs.push_back(pair_MI);
+            g.AddWeightedEdge(j, k, MI);
+            /*             pair_MI.push_back(j);
+                        pair_MI.push_back(k);
+                        pair_MI.push_back(MI);
+                        pair_MIs.push_back(pair_MI); */
         }
     }
 
-    sort(pair_MIs.begin(), pair_MIs.end(), MI_descend);
+    g.kruskal();
+    g.print();
 
-    for (int i = 0; i < pair_MIs.size(); ++i) {
-        cout << "MI between " << pair_MIs[i][0] << " and " << pair_MIs[i][1] << ": " << pair_MIs[i][2] << endl;
-    }
+    /*     for (int i = 0; i < pair_MIs.size(); ++i) {
+            cout << "MI between " << pair_MIs[i][0] << " and " << pair_MIs[i][1] << ": " << pair_MIs[i][2] << endl;
+        } */
 
     vector<vector<int>> edges_in_CLT;
     set<int> nodes_in_CLT;
 
-    for (int k = 0; k < pair_MIs.size(); ++k) {
+    for (int k = 0; k < g.size(); ++k) {
+        pair<int, int> one_edge = g.get_edge(k);
         vector<int> node_pair;
-        node_pair.push_back(static_cast<int>(pair_MIs[k][0]));
-        node_pair.push_back(static_cast<int>(pair_MIs[k][1]));
+        node_pair.push_back(one_edge.first);
+        node_pair.push_back(one_edge.second);
+        edges_in_CLT.push_back(node_pair);
+        /*         vector<int> node_pair;
+                node_pair.push_back(static_cast<int>(pair_MIs[k][0]));
+                node_pair.push_back(static_cast<int>(pair_MIs[k][1]));
 
-        bool is_first_node_exist = false;
-        bool is_second_node_exist = false;
-        bool is_cycle = false;
+                bool is_first_node_exist = false;
+                bool is_second_node_exist = false;
+                bool is_cycle = false;
 
-        if (nodes_in_CLT.find(pair_MIs[k][0]) != nodes_in_CLT.end()) {
-            is_first_node_exist = true;
-        }
+                if (nodes_in_CLT.find(pair_MIs[k][0]) != nodes_in_CLT.end()) {
+                    is_first_node_exist = true;
+                }
 
-        if (nodes_in_CLT.find(pair_MIs[k][1]) != nodes_in_CLT.end()) {
-            is_second_node_exist = true;
-        }
+                if (nodes_in_CLT.find(pair_MIs[k][1]) != nodes_in_CLT.end()) {
+                    is_second_node_exist = true;
+                }
 
-        if (!(is_first_node_exist == true && is_second_node_exist == true) && is_cycle == false) {
-            edges_in_CLT.push_back(node_pair);
-            nodes_in_CLT.insert(node_pair[0]);
-            nodes_in_CLT.insert(node_pair[1]);
-            is_cycle = true;
-        }
+                if (!(is_first_node_exist == true && is_second_node_exist == true) && is_cycle == false) {
+                    edges_in_CLT.push_back(node_pair);
+                    nodes_in_CLT.insert(node_pair[0]);
+                    nodes_in_CLT.insert(node_pair[1]);
+                    is_cycle = true;
+                } */
     }
 
     cout << "edges_in_CLT: " << endl;
@@ -543,7 +551,7 @@ int main(int argc, char** argv) {
         cout << "pi_theta: " << pi.theta() << endl
              << endl;
 
-        auto new_rel_pose = z.block(0, k, DOF_3, 1);
+        Eigen::MatrixXd new_rel_pose = z.block(0, k, DOF_3, 1);
         double new_t_x = new_rel_pose(0, 0);
         double new_t_y = new_rel_pose(1, 0);
         double new_t_theta = new_rel_pose(2, 0);
