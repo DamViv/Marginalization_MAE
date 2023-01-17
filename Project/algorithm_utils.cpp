@@ -4,9 +4,9 @@ bool MI_descend(std::pair<float, std::pair<int, int>> a, std::pair<float, std::p
 }
 
 bool id_ascend(relation& a, relation& b) {
-    if (a.id1 == b.id1) {
-        return a.id2 < b.id2;
+    if (std::stod(a.id1) == std::stod(b.id1)) {
+        return std::stod(a.id2) < std::stod(b.id2);
     } else {
-        return a.id1 < b.id2;
+        return std::stod(a.id1) < std::stod(b.id1);
     }
 }

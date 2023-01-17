@@ -33,8 +33,8 @@ int main(int argc, char** argv) {
     sort(relations.begin(), --relations.end(), id_ascend);
 
     // Initialize graph with prior on first pose
-    NonlinearFactorGraph graph;
-    Values initial;
+    NonlinearFactorGraph original_graph;
+    Values original_initial;
 
     auto priorNoise = noiseModel::Diagonal::Sigmas(Vector3(3.5, 0.5, 1.0));
     // noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas(Vector3(1, 1, 0.1));
@@ -50,12 +50,12 @@ int main(int argc, char** argv) {
 
     // Add the first node with key 0 with a Prior factor to fix the traj
     unsigned int key = 0;
-    graph.add(PriorFactor<Pose2>(key, Pose2(0, 0, 0), priorNoise));
-    initial.insert(key, Pose2(0, 0, 0));
+    original_graph.add(PriorFactor<Pose2>(key, Pose2(0, 0, 0), priorNoise));
+    original_initial.insert(key, Pose2(0, 0, 0));
     existing_nodes.insert(pair<string, unsigned int>(relations.at(0).id1, key));
 
     // Perform Optimization at each step using Levenberg-Marquardt
-    Values result = LevenbergMarquardtOptimizer(graph, initial).optimize();
+    Values result = LevenbergMarquardtOptimizer(original_graph, original_initial).optimize();
 
     int count = 0;
     KeySet cl_nodes;
@@ -66,46 +66,46 @@ int main(int argc, char** argv) {
 
         // check if source node exists in exising_nodes
         if (existing_nodes.find(src_node) != existing_nodes.end()) {
-            Pose2 src_pose = initial.at<Pose2>(existing_nodes[src_node]);
+            Pose2 src_pose = original_initial.at<Pose2>(existing_nodes[src_node]);
 
             // check if destination node exists
             if (existing_nodes.find(dest_node) != existing_nodes.end()) {
-                graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
+                original_graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
                 cl_nodes.insert(existing_nodes[dest_node]);
             } else {
                 existing_nodes.insert(pair<string, unsigned int>(dest_node, ++key));
-                graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
+                original_graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
                 double x = (cos(src_pose.theta()) * rel.T.x() - sin(src_pose.theta()) * rel.T.y()) + src_pose.x();
                 double y = (sin(src_pose.theta()) * rel.T.x() + cos(src_pose.theta()) * rel.T.y()) + src_pose.y();
                 double theta = src_pose.theta() + rel.R.z();
-                initial.insert(existing_nodes[dest_node], Pose2(x, y, theta));
+                original_initial.insert(existing_nodes[dest_node], Pose2(x, y, theta));
             }
         } else if (existing_nodes.find(dest_node) != existing_nodes.end()) {
             existing_nodes.insert(pair<string, unsigned int>(src_node, ++key));
-            graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
+            original_graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
 
-            Pose2 dest_pose = initial.at<Pose2>(existing_nodes[dest_node]);
+            Pose2 dest_pose = original_initial.at<Pose2>(existing_nodes[dest_node]);
             double src_theta = dest_pose.theta() - rel.R.z();
             double src_x = (-cos(src_theta) * rel.T.x() + sin(src_theta) * rel.T.y()) + dest_pose.x();
             double src_y = (-sin(src_theta) * rel.T.x() - cos(src_theta) * rel.T.y()) + dest_pose.y();
 
-            initial.insert(existing_nodes[src_node], Pose2(src_x, src_y, src_theta));
+            original_initial.insert(existing_nodes[src_node], Pose2(src_x, src_y, src_theta));
         } else {
             existing_nodes.insert(pair<string, unsigned int>(src_node, ++key));
             existing_nodes.insert(pair<string, unsigned int>(dest_node, ++key));
-            graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
+            original_graph.add(BetweenFactor<Pose2>(existing_nodes[src_node], existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()), odom_noise_model));
 
-            initial.insert(existing_nodes[src_node], Pose2(0, 0, 0));
-            initial.insert(existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()));
+            original_initial.insert(existing_nodes[src_node], Pose2(0, 0, 0));
+            original_initial.insert(existing_nodes[dest_node], Pose2(rel.T.x(), rel.T.y(), rel.R.z()));
         }
 
-        result = LevenbergMarquardtOptimizer(graph, initial).optimize();
+        result = LevenbergMarquardtOptimizer(original_graph, original_initial).optimize();
 
         cout.precision(4);
         cout << "Relation: " << src_node << " - " << dest_node << endl;
-        Pose2 src_pose = initial.at<Pose2>(existing_nodes[src_node]);
+        Pose2 src_pose = original_initial.at<Pose2>(existing_nodes[src_node]);
         cout << "initial  src_pose: " << src_pose.x() << ", " << src_pose.y() << ", " << src_pose.theta() << endl;
-        Pose2 dest_pose = initial.at<Pose2>(existing_nodes[dest_node]);
+        Pose2 dest_pose = original_initial.at<Pose2>(existing_nodes[dest_node]);
         cout << "initial dest_pose: " << dest_pose.x() << ", " << dest_pose.y() << ", " << dest_pose.theta() << endl;
         Pose2 result_src_pose = result.at<Pose2>(existing_nodes[src_node]);
         cout << "result  src_pose: " << result_src_pose.x() << ", " << result_src_pose.y() << ", " << result_src_pose.theta() << endl;
@@ -114,10 +114,10 @@ int main(int argc, char** argv) {
         cout << ++count << " iteration is done" << endl
              << endl;
     }
-    result = LevenbergMarquardtOptimizer(graph, initial).optimize();
+    result = LevenbergMarquardtOptimizer(original_graph, original_initial).optimize();
     ofstream os1("coords.txt");
-    for (int i = 0; i < graph.size(); ++i) {
-        auto factor = graph.at(i);
+    for (int i = 0; i < original_graph.size(); ++i) {
+        auto factor = original_graph.at(i);
         auto keys = factor->keys();
 
         auto src = keys[0];
@@ -126,15 +126,15 @@ int main(int argc, char** argv) {
         Pose2 p1 = result.at<Pose2>(src);
         Pose2 p2 = result.at<Pose2>(dest);
 
-        Pose2 i1 = initial.at<Pose2>(src);
-        Pose2 i2 = initial.at<Pose2>(dest);
+        Pose2 i1 = original_initial.at<Pose2>(src);
+        Pose2 i2 = original_initial.at<Pose2>(dest);
 
         os1 << p1.x() << " " << p1.y() << " " << p2.x() << " " << p2.y() << " " << i1.x() << " " << i1.y() << " " << i2.x() << " " << i2.y() << std::endl;
     }
 
-    KeySet nodes_to_keep = graph.keys();
+    KeySet nodes_to_keep = original_graph.keys();
     KeySet nodes_to_remove;
-    nodes_to_remove.insert(existing_nodes["40"]);
+    // nodes_to_remove.insert(existing_nodes["40"]);
     nodes_to_remove.insert(existing_nodes["50"]);
 
     for (auto node : nodes_to_remove) {
@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
     int n_keep = nodes_to_keep.size();
 
     KeySet markov_blanket;
-    get_markov_blanket(markov_blanket, graph, nodes_to_remove);
+    get_markov_blanket(markov_blanket, original_graph, nodes_to_remove);
     cout << "Nodes in markov blanket: " << endl;
     for (auto node : markov_blanket) {
         cout << node << endl;
@@ -153,8 +153,8 @@ int main(int argc, char** argv) {
     cout << endl;
     int n_mb = markov_blanket.size();
 
-    Marginals marginals(graph, result);
-    KeyVector keys = graph.keyVector();
+    Marginals marginals(original_graph, result);
+    KeyVector keys = original_graph.keyVector();
     // gtsam::JointMarginal I_joint = marginals.jointMarginalInformation(keys);
     gtsam::JointMarginal I_joint = marginals.jointMarginalInformation(keys);
     cout.precision(4);
@@ -168,7 +168,7 @@ int main(int argc, char** argv) {
 
     Matrix I_markov(markov_blanket.size() * DOF_3, markov_blanket.size() * DOF_3);
     I_markov.fill(0);
-    computeMatInfJac(I_markov, graph, result, odom_noise_model, markov_blanket);
+    computeMatInfJac(I_markov, original_graph, result, odom_noise_model, markov_blanket);
     // compute_information_markov(I_markov, I_joint, markov_blanket);
 
     cout << "Information matrix in Markov blanket: \n"
@@ -296,17 +296,24 @@ int main(int argc, char** argv) {
         }
     }
     Eigen::MatrixXd D(count_positive, count_positive);
+    D.fill(0);
+
     Eigen::MatrixXd U(D_diagonal_size, count_positive);
+    U.fill(0);
 
+    // There is some errors in for loop
+    int offset_negative = 0;
     for (int i = 0; i < D_diagonal_size; ++i) {
-        for (int j = 0; j < D_diagonal_size; ++j) {
-            if (non_zero_columns[i] == true && non_zero_columns[j] == true) {
-                D.block(i, j, 1, 1) = eig_mat.block(i, j, 1, 1);
-            }
-        }
-
         if (non_zero_columns[i] == true) {
-            U.block(0, i, D_diagonal_size, 1) = eig_vec.block(0, i, D_diagonal_size, 1);
+            D(i - offset_negative, i - offset_negative) = eig_mat(i, i);
+
+            cout << "D(constructing): " << endl
+                 << D << endl
+                 << endl;
+
+            U.block(0, i - offset_negative, D_diagonal_size, 1) = eig_vec.block(0, i, D_diagonal_size, 1);
+        } else {
+            ++offset_negative;
         }
     }
 
@@ -502,16 +509,16 @@ int main(int argc, char** argv) {
     cout << "KLD: " << KLD << endl;
 
     for (int node_to_remove : nodes_to_remove) {
-        for (auto it = graph.begin(); it != graph.end(); ++it) {
+        for (auto it = original_graph.begin(); it != original_graph.end(); ++it) {
             auto node_pair = (*it)->keys();
             if (node_pair.size() != 1) {
                 if (node_pair[0] == node_to_remove || node_pair[1] == node_to_remove) {
-                    graph.erase(it);
+                    original_graph.erase(it);
                     --it;
                 }
             }
         }
-        initial.erase(node_to_remove);
+        original_initial.erase(node_to_remove);
     }
 
     for (int k = 0; k < edges_in_CLT.size(); ++k) {
@@ -556,6 +563,9 @@ int main(int argc, char** argv) {
         double new_t_y = new_rel_pose(1, 0);
         double new_t_theta = new_rel_pose(2, 0);
 
+        double correct_theta_result = result.at<Pose2>(j_key).theta();
+        new_t_theta = abs(correct_theta_result - (pi.theta() + new_t_theta)) < abs(correct_theta_result - (pi.theta() - new_t_theta)) ? new_t_theta : -new_t_theta;
+
         cout << "new transition x: " << new_t_x << endl;
         cout << "new transition y: " << new_t_y << endl;
         cout << "new transition theta: " << new_t_theta << endl
@@ -585,16 +595,16 @@ int main(int argc, char** argv) {
              << endl;
 
         auto sparsified_noise = noiseModel::Diagonal::Sigmas(Vector3(sqrt(x_cov), sqrt(y_cov), sqrt(theta_cov)));
-        graph.emplace_shared<BetweenFactor<Pose2>>(i_key, j_key, Pose2(new_t_x, new_t_y, new_t_theta), sparsified_noise);
+        original_graph.emplace_shared<BetweenFactor<Pose2>>(i_key, j_key, Pose2(new_t_x, new_t_y, new_t_theta), sparsified_noise);
 
-        initial.update(j_key, Pose2(pj_x, pj_y, pj_theta));
+        original_initial.update(j_key, Pose2(pj_x, pj_y, pj_theta));
     }
 
-    result = LevenbergMarquardtOptimizer(graph, initial).optimize();
+    result = LevenbergMarquardtOptimizer(original_graph, original_initial).optimize();
 
     ofstream os4("sparsified_coords.txt");
-    for (int i = 1; i < graph.size(); ++i) {
-        auto factor = graph.at(i);
+    for (int i = 1; i < original_graph.size(); ++i) {
+        auto factor = original_graph.at(i);
         auto keys = factor->keys();
 
         auto src = keys[0];
