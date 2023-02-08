@@ -213,9 +213,9 @@ int main(int argc, char** argv) {
 
     KeySet nodes_to_keep = original_graph.keys();
     KeySet nodes_to_remove;
-    nodes_to_remove.insert(existing_nodes["20"]);
-    nodes_to_remove.insert(existing_nodes["60"]);
-    nodes_to_remove.insert(existing_nodes["50"]);
+    nodes_to_remove.insert(existing_nodes["30"]);
+    // nodes_to_remove.insert(existing_nodes["60"]);
+    // nodes_to_remove.insert(existing_nodes["50"]);
 
     for (auto node : nodes_to_remove) {
         nodes_to_keep.erase(node);
@@ -570,9 +570,20 @@ int main(int argc, char** argv) {
     os3 << I_spars << endl;
     os3.close();
 
-    /*     auto prod = U.transpose() * I_spars * U * Sigma;
-        auto KLD = 0.5 * (prod.trace() - log(prod.determinant()) - I_spars.row(0).size());
-        cout << "KLD: " << KLD << endl; */
+    // To get Kullback-Leibler divergence
+    cout << "I_spars's row size: " << I_spars.row(0).size() << endl;
+    cout << "I_spars's column size: " << I_spars.col(0).size() << endl;
+
+    cout << "(U.transpose() * I_spars * U)'s row size: " << (U.transpose() * I_spars * U).row(0).size() << endl;
+    cout << "(U.transpose() * I_spars * U)'s column size: " << (U.transpose() * I_spars * U).col(0).size() << endl;
+
+    cout << "Sigma's row size: " << Sigma.row(0).size() << endl;
+    cout << "Sigma's column size: " << Sigma.col(0).size() << endl;
+
+    // (U.transpose() * I_spars * U) is the inverse matrix of sigma hat.
+    Eigen::Product prod = (U.transpose() * I_spars * U) * Sigma;
+    double KLD = 0.5 * (prod.trace() - log(prod.determinant()) - Sigma.row(0).size());
+    cout << "KLD: " << KLD << endl;
 
     // Remove nodes to create a sparsed graph
     for (int node_to_remove : nodes_to_remove) {
