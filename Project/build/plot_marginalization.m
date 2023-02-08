@@ -2,13 +2,14 @@ clc; clear; close all;
 
 fileID = fopen('marginalization.txt','r');
 formatSpec = '%f';
-sizeA = [18 Inf];
+sizeA = [15 Inf];
+%18
 I_marg = fscanf(fileID, formatSpec, sizeA);
 fclose(fileID);
 
 fileID = fopen('sparcification.txt','r');
 formatSpec = '%f';
-sizeA = [18 Inf];
+sizeA = [15 Inf];
 I_spars = fscanf(fileID, formatSpec, sizeA);
 fclose(fileID);
 
@@ -18,8 +19,8 @@ clims = [-6, 6];
 
 subplot 121;
 imagesc(log(abs(I_marg)), clims);
-title("Marginalized, Dense Information matrix on elimination clique")
+title("Marginalized, Dense Information matrix")
 
 subplot 122;
 imagesc(log(abs(I_spars)), clims);
-title("Sparsified Information matrix on elimination clique");
+title("Sparsified Information matrix");
