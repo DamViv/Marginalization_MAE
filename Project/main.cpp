@@ -208,14 +208,13 @@ int main(int argc, char** argv) {
             cout << "MI(" << k - 1 << "-" << j - 1 << "): " << MI << endl;
         }
     }
-    auto test = original_initial.at<Pose2>(0);
-    cout << test.x() << ", " << test.y() << endl;
+    /*     auto test = original_initial.at<Pose2>(0);
+        cout << test.x() << ", " << test.y() << endl; */
 
     KeySet nodes_to_keep = original_graph.keys();
     KeySet nodes_to_remove;
-    nodes_to_remove.insert(existing_nodes["30"]);
-    // nodes_to_remove.insert(existing_nodes["60"]);
-    // nodes_to_remove.insert(existing_nodes["50"]);
+    // nodes_to_remove.insert(existing_nodes["30"]);
+    nodes_to_remove.insert(existing_nodes["40"]);
 
     for (auto node : nodes_to_remove) {
         nodes_to_keep.erase(node);
@@ -284,10 +283,6 @@ int main(int argc, char** argv) {
             // vector<double> pair_MI;
             double MI = compute_mutual_information(I_marg, j, k);
             g.AddWeightedEdge(j, k, MI);
-            /*             pair_MI.push_back(j);
-                        pair_MI.push_back(k);
-                        pair_MI.push_back(MI);
-                        pair_MIs.push_back(pair_MI); */
         }
     }
 
@@ -299,7 +294,7 @@ int main(int argc, char** argv) {
         } */
 
     vector<vector<int>> edges_in_CLT;
-    set<int> nodes_in_CLT;
+    // set<int> nodes_in_CLT;
 
     for (int k = 0; k < g.size(); ++k) {
         pair<int, int> one_edge = g.get_edge(k);
@@ -307,28 +302,6 @@ int main(int argc, char** argv) {
         node_pair.push_back(one_edge.first);
         node_pair.push_back(one_edge.second);
         edges_in_CLT.push_back(node_pair);
-        /*         vector<int> node_pair;
-                node_pair.push_back(static_cast<int>(pair_MIs[k][0]));
-                node_pair.push_back(static_cast<int>(pair_MIs[k][1]));
-
-                bool is_first_node_exist = false;
-                bool is_second_node_exist = false;
-                bool is_cycle = false;
-
-                if (nodes_in_CLT.find(pair_MIs[k][0]) != nodes_in_CLT.end()) {
-                    is_first_node_exist = true;
-                }
-
-                if (nodes_in_CLT.find(pair_MIs[k][1]) != nodes_in_CLT.end()) {
-                    is_second_node_exist = true;
-                }
-
-                if (!(is_first_node_exist == true && is_second_node_exist == true) && is_cycle == false) {
-                    edges_in_CLT.push_back(node_pair);
-                    nodes_in_CLT.insert(node_pair[0]);
-                    nodes_in_CLT.insert(node_pair[1]);
-                    is_cycle = true;
-                } */
     }
 
     cout << "edges_in_CLT: " << endl;
@@ -337,8 +310,8 @@ int main(int argc, char** argv) {
     }
 
     Eigen::EigenSolver<Eigen::MatrixXd> es(I_marg);
-    auto eig_mat = es.pseudoEigenvalueMatrix();
-    auto eig_vec = es.pseudoEigenvectors();
+    Eigen::MatrixXd eig_mat = es.pseudoEigenvalueMatrix();
+    Eigen::MatrixXd eig_vec = es.pseudoEigenvectors();
 
     cout << "The pseudo-eigenvalues of I_marg: " << endl
          << eig_mat << endl
@@ -348,16 +321,16 @@ int main(int argc, char** argv) {
          << eig_vec << endl
          << endl;
 
-    auto D_diagonal = eig_mat.diagonal().transpose();
-    auto D_diagonal_size = D_diagonal.size();
-    bool non_zero_columns[D_diagonal_size] = {
+    Eigen::MatrixXd D_diagonal = eig_mat.diagonal().transpose();
+    int D_diagonal_size = D_diagonal.size();
+    bool positives[D_diagonal_size] = {
         false,
     };
 
     int count_positive = 0;
     for (int i = 0; i < D_diagonal_size; ++i) {
-        if (D_diagonal(i) > 0) {
-            non_zero_columns[i] = true;
+        if (D_diagonal(i) > 0.00001) {
+            positives[i] = true;
             ++count_positive;
         }
     }
@@ -370,7 +343,7 @@ int main(int argc, char** argv) {
     // There is some errors in for loop
     int offset_negative = 0;
     for (int i = 0; i < D_diagonal_size; ++i) {
-        if (non_zero_columns[i] == true) {
+        if (positives[i] == true) {
             D(i - offset_negative, i - offset_negative) = eig_mat(i, i);
 
             cout << "D(constructing): " << endl
@@ -378,6 +351,9 @@ int main(int argc, char** argv) {
                  << endl;
 
             U.block(0, i - offset_negative, D_diagonal_size, 1) = eig_vec.block(0, i, D_diagonal_size, 1);
+            cout << "U(constructing): " << endl
+                 << U << endl
+                 << endl;
         } else {
             ++offset_negative;
         }
@@ -392,14 +368,22 @@ int main(int argc, char** argv) {
          << endl;
 
     Eigen::MatrixXd Sigma = D.inverse();
+    // Eigen::MatrixXd Sigma = I_marg.inverse();
+
     Eigen::MatrixXd J(edges_in_CLT.size() * DOF_3, I_marg.row(0).size());
     J.fill(0);
 
-    Eigen::MatrixXd Omega(edges_in_CLT.size() * DOF_3, edges_in_CLT.size() * DOF_3);
-    Omega.fill(0);
+    Eigen::MatrixXd Omega_breve(edges_in_CLT.size() * DOF_3, edges_in_CLT.size() * DOF_3);
+    Omega_breve.fill(0);
 
     Eigen::MatrixXd z(DOF_3, edges_in_CLT.size());
     z.fill(0);
+
+    Eigen::MatrixXd Phi(edges_in_CLT.size() * DOF_3, edges_in_CLT.size() * DOF_3);
+    Phi.fill(0);
+
+    Eigen::MatrixXd Upsilon(edges_in_CLT.size() * DOF_3, edges_in_CLT.size() * DOF_3);
+    Upsilon.fill(0);
 
     // Another method
     /*     Eigen::MatrixXd Sigma = I_marg.inverse();
@@ -408,8 +392,8 @@ int main(int argc, char** argv) {
         Eigen::MatrixXd J(Sigma);
         J.fill(0);
 
-        Eigen::MatrixXd Omega(Sigma);
-        Omega.fill(0);
+        Eigen::MatrixXd Omega_breve(Sigma);
+        Omega_breve.fill(0);
 
         Eigen::MatrixXd z(DOF_3, edges_in_CLT.size());
         z.fill(0); */
@@ -509,27 +493,257 @@ int main(int argc, char** argv) {
              << endl;
 
         // Another method
-        /*         Eigen::MatrixXd Omega_k = (J_k * Sigma * J_k.transpose()).inverse();
-                cout << "Omega_k matrix: " << endl
-                     << Omega_k << endl
+        /*         Eigen::MatrixXd Omega_breve_k = (J_k * Sigma * J_k.transpose()).inverse();
+                cout << "Omega_breve_k matrix: " << endl
+                     << Omega_breve_k << endl
                      << endl;
 
-                Omega.block(k * DOF_3, k * DOF_3, DOF_3, DOF_3) = Omega_k;
-                cout << "Omega matrix: " << endl
-                     << Omega << endl
+                Omega_breve.block(k * DOF_3, k * DOF_3, DOF_3, DOF_3) = Omega_breve_k;
+                cout << "Omega_breve matrix: " << endl
+                     << Omega_breve << endl
                      << endl; */
     }
 
-    J = J * U;
+    cout << "J matrix: " << endl
+         << J << endl
+         << endl;
 
+    cout << "I_marg: " << endl
+         << I_marg << endl
+         << endl;
+
+    /* J = J * U;
+    cout << "J * U: " << endl
+         << J << endl
+         << endl; */
+
+    // Eigen::MatrixXd Lambda = J * Sigma * J.transpose();
+    Eigen::MatrixXd Lambda = I_marg;
+    cout << "Lambda: " << endl
+         << Lambda << endl
+         << endl;
+
+    for (int k = 0; k < edges_in_CLT.size(); ++k) {
+        Eigen::MatrixXd non_zeros(DOF_3, DOF_3);
+        non_zeros.fill(0);
+
+        Eigen::MatrixXd J_k(DOF_3, J.row(0).size());
+        J_k.fill(0);
+        J_k = J.block(k * DOF_3, 0, DOF_3, J.row(0).size());
+        cout << "J_k(k = " << k << "):" << endl
+             << J_k << endl
+             << endl;
+
+        int k1 = edges_in_CLT[k][0] - 1;
+        int k2 = edges_in_CLT[k][1] - 1;
+
+        Eigen::MatrixXd J_k1(DOF_3, DOF_3);
+        J_k1 = J_k.block(0, k1 * DOF_3, DOF_3, DOF_3);
+        cout << "J_k1(k = " << k << "):" << endl
+             << J_k1 << endl
+             << endl;
+
+        Eigen::MatrixXd J_k2(DOF_3, DOF_3);
+        J_k2 = J_k.block(0, k2 * DOF_3, DOF_3, DOF_3);
+        cout << "J_k2(k = " << k << "):" << endl
+             << J_k2 << endl
+             << endl;
+        /*         int k1 = 0;
+                int k2 = 0;
+
+                Eigen::MatrixXd J_k1(DOF_3, DOF_3);
+                J_k1.fill(0);
+
+                Eigen::MatrixXd J_k2(DOF_3, DOF_3);
+                J_k2.fill(0);
+
+                J_k1 = J_k.block(0, k1 * DOF_3, DOF_3, DOF_3);
+                while (J_k1 == non_zeros) {
+                    ++k1;
+                    J_k1 = J_k.block(0, k1 * DOF_3, DOF_3, DOF_3);
+                }
+                cout << "J_k1(k = " << k << "):" << endl
+                     << J_k1 << endl
+                     << endl;
+
+                k2 = k1 + 1;
+                J_k2 = J_k.block(0, k2 * DOF_3, DOF_3, DOF_3);
+                while (J_k2 == non_zeros || k1 == k2) {
+                    ++k2;
+                    J_k2 = J_k.block(0, k2 * DOF_3, DOF_3, DOF_3);
+                }
+                cout << "J_k2(k = " << k << "):" << endl
+                     << J_k2 << endl
+                     << endl; */
+
+        Eigen::MatrixXd Lambda_k1k2 = Lambda.block(k1 * DOF_3, k2 * DOF_3, DOF_3, DOF_3);
+        cout << "Lambda_k1k2(k = " << k << "):" << endl
+             << Lambda_k1k2 << endl
+             << endl;
+
+        Eigen::MatrixXd Omega_breve_k = J_k1.inverse().transpose() * Lambda_k1k2 * J_k2.inverse();
+        cout << "Omega_breve_k(k = " << k << "):" << endl
+             << Omega_breve_k << endl
+             << endl;
+
+        Omega_breve.block(k * DOF_3, k * DOF_3, DOF_3, DOF_3) = Omega_breve_k;
+    }
+
+    cout << "Initial guess Omega_breve: " << endl
+         << Omega_breve << endl
+         << endl;
+
+    J = J * U;
     cout << "J * U: " << endl
          << J << endl
          << endl;
 
-    for (int k = 0; k < edges_in_CLT.size(); ++k) {
-        Eigen::MatrixXd inter = J * Sigma * J.transpose();
-        Eigen::MatrixXd Omega_k = inter.block(k * DOF_3, k * DOF_3, DOF_3, DOF_3).inverse();
-        Omega.block(k * DOF_3, k * DOF_3, DOF_3, DOF_3) = Omega_k;
+    // Factor Descent method
+    {
+        double threshold = 1;
+        double epsilon = 0.0001;
+
+        double current_KLD = 10;
+        double pre_KLD = 1;
+        double KLD_gradient = abs(current_KLD - pre_KLD) / pre_KLD;
+        double KLD_gradient_norm = 10;
+
+        int k = 0;
+        Eigen::MatrixXd J_ks[edges_in_CLT.size()];
+        Eigen::MatrixXd Phi_ks[edges_in_CLT.size()];
+        Eigen::MatrixXd z_ks[edges_in_CLT.size()];
+        for (int i = 0; i < edges_in_CLT.size(); ++i) {
+            J_ks[i] = J.block(k * DOF_3, 0, DOF_3, J.row(0).size());
+            cout << "J_ks[" << i << "]: " << endl
+                 << J_ks[i] << endl
+                 << endl;
+
+            Phi_ks[i] = (J_ks[i] * Sigma * J_ks[i].transpose()).inverse();
+            cout << "Phi_ks[" << i << "]: " << endl
+                 << Phi_ks[i] << endl
+                 << endl;
+
+            z_ks[i] = z.block(0, k, DOF_3, 1);
+            cout << "z_ks[" << i << "]: " << endl
+                 << z_ks[i] << endl
+                 << endl;
+        }
+
+        while (KLD_gradient_norm > threshold) {
+            Eigen::MatrixXd Upsilon_k(Sigma.row(0).size(), Sigma.row(0).size());
+            Upsilon_k.fill(0);
+            for (int i = 0; i < edges_in_CLT.size(); ++i) {
+                if (i != k) {
+                    cout << "Omega_breve: " << endl
+                         << Omega_breve << endl
+                         << endl;
+
+                    Eigen::MatrixXd Omega_breve_i = Omega_breve.block(i * DOF_3, i * DOF_3, DOF_3, DOF_3);
+                    cout << "Omega_breve_i: " << endl
+                         << Omega_breve_i << endl
+                         << endl;
+
+                    Upsilon_k += J_ks[i].transpose() * Omega_breve_i * J_ks[i];
+                    cout << "Upsilon_k(updating): " << endl
+                         << Upsilon_k << endl
+                         << endl;
+                }
+            }
+
+            cout << "Upsilon_k: " << endl
+                 << Upsilon_k << endl
+                 << endl;
+
+            Eigen::MatrixXd Omega_breve_k = Phi_ks[k] - (J_ks[k] * Upsilon_k.inverse() * J_ks[k].transpose()).inverse();
+            cout << "Omega Omega_breve_k values: " << endl
+                 << Omega_breve_k << endl
+                 << endl;
+
+            Eigen::EigenSolver<Eigen::MatrixXd> eig_solver(Omega_breve_k);
+            Eigen::MatrixXd Omega_breve_k_eig_mat = eig_solver.pseudoEigenvalueMatrix();
+            cout << "Omega eigen values: " << endl
+                 << Omega_breve_k_eig_mat << endl
+                 << endl;
+
+            Eigen::VectorXd Omega_breve_k_eig_diag = Omega_breve_k_eig_mat.diagonal();
+
+            cout << "Omega_breve_k_eig_diag values: " << endl
+                 << Omega_breve_k_eig_diag << endl
+                 << endl;
+
+            Eigen::MatrixXd V = eig_solver.pseudoEigenvectors();
+            cout << "V(k = " << k << "):" << endl
+                 << V << endl
+                 << endl;
+
+            bool is_positive_definite = true;
+
+            for (int i = 0; i < Omega_breve_k_eig_diag.size(); ++i) {
+                double eigen_value = Omega_breve_k_eig_diag(i, 0);
+                if (eigen_value < epsilon) {
+                    is_positive_definite = false;
+                    Omega_breve_k_eig_diag(i, 0) = 0;
+                }
+            }
+            cout << "Updated Omega_breve_k_eig_diag: " << endl
+                 << Omega_breve_k_eig_diag << endl
+                 << endl;
+
+            if (is_positive_definite != true) {
+                Omega_breve_k_eig_mat = Omega_breve_k_eig_diag.asDiagonal();
+                Omega_breve_k = V * Omega_breve_k_eig_mat * V.transpose();
+            }
+
+            Omega_breve.block(k * DOF_3, k * DOF_3, DOF_3, DOF_3) = Omega_breve_k;
+            cout << "Updated Omega_breve: " << endl
+                 << Omega_breve << endl
+                 << endl;
+
+            Eigen::MatrixXd projected_I_spars = J.transpose() * Omega_breve * J;
+            cout << "Updated projected_I_spars: " << endl
+                 << projected_I_spars << endl
+                 << endl;
+
+            cout << "Sigma: " << endl
+                 << Sigma << endl
+                 << endl;
+
+            /*             Eigen::MatrixXd prod = I_spars * Sigma;
+                        cout << "prod: " << endl
+                             << prod << endl
+                             << endl;
+                        pre_KLD = current_KLD;
+                        double I_spars_determinant = abs(I_spars.determinant());
+                        current_KLD = 0.5 * (prod.trace() - log(I_spars_determinant));
+
+                        KLD_gradient = abs(current_KLD - pre_KLD) / pre_KLD;
+                        cout << "KLD_gradient: " << KLD_gradient << endl;
+          */
+
+            Eigen::MatrixXd derivative_KLD = J_ks[k] * Sigma * J_ks[k].transpose() - J_ks[k] * (Upsilon_k + J_ks[k].transpose() * Omega_breve_k * J_ks[k]).inverse() * J_ks[k].transpose();
+            cout << "derivative_KLD" << endl
+                 << derivative_KLD << endl
+                 << endl;
+
+            double sum = 0;
+            /*             for (int j = 0; j < J_ks[k].col(0).size(); ++j) {
+                            Eigen::VectorXd col_vec = derivative_KLD.block(0, j, DOF_3, 1);
+                            for (int i = 0; i < col_vec.size(); ++i) {
+                                sum += abs(col_vec(i, 0));
+                            }
+                        } */
+            for (int i = 0; i < derivative_KLD.col(0).size(); ++i) {
+                for (int j = 0; j < derivative_KLD.row(0).size(); ++j) {
+                    sum += derivative_KLD(i, j) * derivative_KLD(i, j);
+                }
+            }
+            KLD_gradient_norm = sqrt(sum);
+            cout << "KLD_gradient_norm: " << KLD_gradient_norm << endl
+                 << endl;
+
+            ++k;
+            k %= edges_in_CLT.size();
+        }
     }
 
     // Another method
@@ -538,8 +752,8 @@ int main(int argc, char** argv) {
                  << J << endl
                  << endl;
 
-            cout << "Omega before something: " << endl
-                 << Omega << endl
+            cout << "Omega_breve before something: " << endl
+                 << Omega_breve << endl
                  << endl;
 
             Eigen::MatrixXd J_k(DOF_3, I_marg.row(0).size());
@@ -548,10 +762,10 @@ int main(int argc, char** argv) {
             // J_k.block(0, 0, DOF_3, DOF_3) = (Eigen::Vector3d(1, 1, 1)).asDiagonal();
 
             int last_idx_mb = I_marg.row(0).size() - DOF_3;
-            Eigen::MatrixXd Omega_k = (J_k * Sigma * J_k.transpose()).inverse();
-            Omega.block(last_idx_mb, last_idx_mb, DOF_3, DOF_3) = Omega_k;
-            cout << "Omega after something: " << endl
-                 << Omega << endl
+            Eigen::MatrixXd Omega_breve_k = (J_k * Sigma * J_k.transpose()).inverse();
+            Omega_breve.block(last_idx_mb, last_idx_mb, DOF_3, DOF_3) = Omega_breve_k;
+            cout << "Omega_breve after something: " << endl
+                 << Omega_breve << endl
                  << endl;
 
             J.block(last_idx_mb, 0, DOF_3, J.row(0).size()) = J_k;
@@ -560,8 +774,8 @@ int main(int argc, char** argv) {
                  << endl;
         } */
 
-    Eigen::MatrixXd I_spars = J.transpose() * Omega * J;
-    I_spars = U * I_spars * U.transpose();
+    Eigen::MatrixXd projected_I_spars = J.transpose() * Omega_breve * J;
+    Eigen::MatrixXd I_spars = U * projected_I_spars * U.transpose();
     cout << "I_spars: " << endl
          << I_spars << endl
          << endl;
@@ -571,21 +785,24 @@ int main(int argc, char** argv) {
     os3.close();
 
     // To get Kullback-Leibler divergence
-    cout << "I_spars's row size: " << I_spars.row(0).size() << endl;
-    cout << "I_spars's column size: " << I_spars.col(0).size() << endl;
-
-    cout << "(U.transpose() * I_spars * U)'s row size: " << (U.transpose() * I_spars * U).row(0).size() << endl;
-    cout << "(U.transpose() * I_spars * U)'s column size: " << (U.transpose() * I_spars * U).col(0).size() << endl;
+    cout << "projected_I_spars's row size: " << projected_I_spars.row(0).size() << endl;
+    cout << "projected_I_spars's column size: " << projected_I_spars.col(0).size() << endl;
 
     cout << "Sigma's row size: " << Sigma.row(0).size() << endl;
     cout << "Sigma's column size: " << Sigma.col(0).size() << endl;
 
-    // (U.transpose() * I_spars * U) is the inverse matrix of sigma hat.
-    Eigen::Product prod = (U.transpose() * I_spars * U) * Sigma;
-    double KLD = 0.5 * (prod.trace() - log(prod.determinant()) - Sigma.row(0).size());
-    cout << "KLD: " << KLD << endl;
+    Eigen::Product prod = projected_I_spars * Sigma;
 
-    // Remove nodes to create a sparsed graph
+    // Eigen::Product prod = I_spars * Sigma;
+    double prod_det = prod.determinant();
+    cout << "prod.trace: " << prod.trace() << endl;
+    cout << "prod.det: " << prod_det << endl;
+
+    double KLD = 0.5 * (prod.trace() - log(prod_det) - projected_I_spars.row(0).size());
+    cout << "KLD: " << KLD << endl
+         << endl;
+
+    // To remove nodes to create a sparsed graph
     for (int node_to_remove : nodes_to_remove) {
         for (auto it = original_graph.begin(); it != original_graph.end(); ++it) {
             auto node_pair = (*it)->keys();
@@ -649,7 +866,7 @@ int main(int argc, char** argv) {
         cout << "new transition theta: " << new_t_theta << endl
              << endl;
 
-        Eigen::MatrixXd cov = Omega.block(k * DOF_3, k * DOF_3, DOF_3, DOF_3).inverse();
+        Eigen::MatrixXd cov = Omega_breve.block(k * DOF_3, k * DOF_3, DOF_3, DOF_3).inverse();
         cout << "covariance: " << endl
              << cov << endl
              << endl;

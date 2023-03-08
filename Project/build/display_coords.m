@@ -24,10 +24,10 @@ plot(B(:,3), B(:,4), '*r')
 
 plot([B(:,1)'; B(:,3)'], [B(:,2)'; B(:,4)'], 'b')
 
-plot(B(:,5), B(:,6), '.g')
-plot(B(:,7), B(:,8), '.g')
+%plot(B(:,5), B(:,6), '.g')
+%plot(B(:,7), B(:,8), '.g')
 
-plot([B(:,5)'; B(:,7)'], [B(:,6)'; B(:,8)'], 'k')
+%plot([B(:,5)'; B(:,7)'], [B(:,6)'; B(:,8)'], 'k')
 
 C = load('coords_without_noise.txt');
 figure('name','Graph without noise');
