@@ -22,6 +22,7 @@ using namespace gtsam;
 
 int main(int argc, char** argv) {
     cout <<"test" <<endl;
+    cout <<"test" <<endl;
     // string relation_file = "intel.relations.txt";
     string relation_file = "test_case1.txt";
     string basic_path = "./data_set/";
